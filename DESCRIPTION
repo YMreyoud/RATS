@@ -1,0 +1,23 @@
+Package: BulkRNAseqShiny
+Title: Shiny Based Bulk RNA-Sequencing Analysis
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Yassin",
+           family = "Mreyoud",
+           role = c("aut", "cre"),
+           email = "yassin.mreyoud@wustl.edu",
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: This package generates a user-friendly and interactive enevironment for Bulk RNA-sequencing analysis.
+License: `use_mit_license()`, `use_gpl3_license()` or friends to
+    pick a license
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.0
+Imports:
+  shiny,
+  DT,
+  tidyverse,
+  readxl,
+  edgeR,
+  limma
