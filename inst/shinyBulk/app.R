@@ -13,6 +13,8 @@ library(tidyverse)
 library(readxl)
 library(edgeR)
 library(limma)
+library(ggrepel)
+library(pheatmap)
 
 contrastsvector <- c()
 
@@ -31,6 +33,32 @@ fitvoom <- function(dge, design.mat) {
   return(vfit)
 }
 
+save_pheatmap <- function(hm, filename, width=7, height=7){
+  filename <- paste(filename, '.pdf', sep = '')
+  pdf(filename, width=width, height=height)
+  print(hm)
+  dev.off()
+}
+
+graph_params <- function(graph_type, object, model = NULL) {
+  genes <- object$genes$genes
+  contrast <- colnames(model$contrasts)
+  params <- tagList()
+  if (graph_type == "volcano") {
+    params[[1]] <- numericInput("gpvalue", "P value cut-off", value = 0.05, min = 0, max = 1)
+    params[[2]] <- selectInput("ggenes", "Genes", choices = genes, multiple = TRUE)
+    params[[3]] <- fileInput("ggeneset", "Optional Geneset", multiple = FALSE)
+    params[[4]] <- selectInput("gcontrast", "Contrast", choices = contrast, multiple = FALSE)
+    params[[5]] <- selectInput("glabel", "Label", choices = c("FALSE", "TRUE"), multiple = FALSE)
+  } else if (graph_type == "heatmap") {
+    params[[1]] <- selectInput("ggenes", "Genes", choices = genes, multiple = TRUE)
+    params[[2]] <- selectizeInput("gcondition", "Conditions", choices = object$samples$group, multiple = TRUE)
+    #params[[3]] <- selectInput("gidents", "Idents", choices = idents, multiple = FALSE)
+    #params[[4]] <- selectInput("gdotscale", "Scale", choices = c("TRUE", "FALSE"), multiple = FALSE)
+  }
+  return(params)
+}
+
 
 options(shiny.maxRequestSize = 100 * 1024^3)
 
@@ -45,6 +73,7 @@ ui <-  fluidPage(titlePanel(windowTitle = "Stallings Lab Bulk RNA Seq Analysis",
             label = "Count Matrix",
             multiple = FALSE
           ),
+          shiny::radioButtons('extension', 'File extension', choices = c('tsv','csv')),
           shiny::actionButton("loaddata", "Upload")
       ),
       mainPanel(type = "tab", tabsetPanel(
@@ -64,9 +93,17 @@ ui <-  fluidPage(titlePanel(windowTitle = "Stallings Lab Bulk RNA Seq Analysis",
         textInput('group', 'List the label for each sample selected separated by commas (e.g KO_Naive,WT_Naive)'),
         actionButton('selection', 'Done')
       ),
-      mainPanel(
-        plotOutput('bplot'),
-        plotOutput('mds')
+      mainPanel(tabsetPanel(
+        tabPanel(
+          "Raw Data",
+          DT::dataTableOutput("counts2")
+        ),
+        tabPanel(
+          "Data Stats",
+          plotOutput('bplot'),
+          plotOutput('mds')
+        )
+      )
       )
     ))
   ),
@@ -108,6 +145,29 @@ ui <-  fluidPage(titlePanel(windowTitle = "Stallings Lab Bulk RNA Seq Analysis",
                DT::dataTableOutput("DEGS"),
                uiOutput('downloaddge')
              ))
+           ))),
+  tabPanel("Graphs",
+           fluidRow(sidebarLayout(
+             sidebarPanel(tabsetPanel(
+               tabPanel(
+                 "Graph options",
+                 selectInput("graphtomake", label = "Graph Type:", choices = c("volcano", "heatmap"), multiple = FALSE),
+                 uiOutput("graphparams"),
+                 actionButton("graphbutton", label = "Graph")
+               ),
+               tabPanel(
+                 "Download Options",
+                 selectInput("gunits", "Units", choices = c("in", "cm", "mm", "px"), selected = "in"),
+                 numericInput("gwidth", "Width", value = 7),
+                 numericInput("gheight", "Height", value = 7),
+                 numericInput("gscale", "Scale", value = 1),
+                 selectInput("gmode", "File type", choices = c(".png", ".svg", ".jpg"), selected = ".png")
+               )
+             )),
+             mainPanel(
+               plotOutput('graph'),
+               downloadButton("downloadgraph", "Download")
+             )
            )))
 ))
 
@@ -124,9 +184,23 @@ server <- function(input, output) {
     output$mdataTbl <- renderTable({
         raw_inputs()
     })
+    sep <- reactive({
+      if (input$extension == 'tsv') {
+        '\t'
+      }
+      else {
+        ','
+      }
+    })
     observeEvent(input$loaddata, {
-        raw_counts$obj <- utils::read.csv(input$rawcounts$datapath)
+        raw_counts$obj <- utils::read.csv(input$rawcounts$datapath, sep = sep())
         output$counts <- DT::renderDataTable({
+          DT::datatable(
+            as.data.frame.matrix(raw_counts$obj),
+            options = list(scrollX = TRUE, pageLength = 10)
+          )
+        })
+        output$counts2 <- DT::renderDataTable({
           DT::datatable(
             as.data.frame.matrix(raw_counts$obj),
             options = list(scrollX = TRUE, pageLength = 10)
@@ -156,7 +230,7 @@ server <- function(input, output) {
     })
     observeEvent(input$fit, {
       if(input$model == 'Limma'){
-          raw_counts$model <- fitlimma(raw_counts$dge, raw_counts$design.mat, groups)
+          raw_counts$model <- fitlimma(raw_counts$dge, raw_counts$design.mat, raw_counts$dge$samples$group)
       }
       else {
         output$vplot <- renderPlot({
@@ -192,10 +266,10 @@ server <- function(input, output) {
       raw_counts$model <- eBayes(raw_counts$model)
     })
     output$comparison <- renderUI({
-      selectizeInput("comparisons", "Select Comparison", choices = levels(raw_counts$dge$samples$group), selected = NULL, options = list(maxItems = 2))
+      selectizeInput("comparisons", "Select Comparison", choices = colnames(raw_counts$model$contrasts), selected = NULL, options = list(maxItems = 1))
     })
     observeEvent(input$rundge, {
-      raw_counts$DEGS <- topTable(raw_counts$model, coef = str_c(input$comparisons[1], '-', input$comparisons[2]), number = Inf, adjust.method = input$adjust, sort.by = input$sortby, p.value = input$pcutoff)
+      raw_counts$DEGS <- topTable(raw_counts$model, coef = input$comparisons, number = Inf, adjust.method = input$adjust, sort.by = input$sortby, p.value = input$pcutoff)
       print(raw_counts$DEGS)
       output$DEGS <- DT::renderDataTable({
         DT::datatable(
@@ -209,10 +283,81 @@ server <- function(input, output) {
     })
     output$downloaddiffexp <- downloadHandler(
       filename = function() {
-        paste(input$comparisons[1], "_vs_", input$comparisons[2], ".csv", sep = "")
+        paste(input$comparisons, ".csv", sep = "")
       },
       content = function(con) {
         write.csv(raw_counts$DEGS, con)
+      }
+    )
+    output$graphparams <- renderUI({
+      req(input$graphtomake, raw_counts$dge, raw_counts$model)
+      params <- graph_params(input$graphtomake, raw_counts$dge, raw_counts$model)
+      params
+    })
+    graph <- eventReactive(input$graphbutton, {
+      req(raw_counts$dge, input$graphtomake, raw_counts$model)
+      if (input$graphtomake == "volcano") {
+        top.table <- topTable(raw_counts$model, coef = input$gcontrast, number = Inf, adjust.method = 'BH', p.value = 1)
+        top.table <- as.data.frame(top.table)
+        differential<-top.table
+        mutateddf <- mutate(differential, sig = ifelse(differential$P.Value<input$gpvalue, "Sig", "Not Sig"))
+        volc_in <- cbind(gene=mutateddf[,1], mutateddf)
+        print((input$ggeneset$datapath))
+        print(is.null(input$ggenes))
+        if (is.null(input$ggeneset) & is.null(input$ggenes)){
+          volc = ggplot(volc_in[2:length(volc_in$gene),], aes(logFC, -log10(P.Value))) +
+            geom_point(aes(col=sig)) +
+            scale_color_manual(values = c('Sig' = "red",  'Not Sig' = 'black')) +
+            ggtitle(input$gcontrast)
+          volc
+        }
+        else {
+          if (!is.null(input$ggeneset)) {
+          geneset <- read_tsv(input$ggeneset$datapath)
+          geneset <- geneset %>% mutate(SYMBOL = str_trim(str_to_title(SYMBOL)))
+          geneset <- as.list(geneset['SYMBOL'])
+          sset<- volc_in[volc_in$genes %in% geneset$SYMBOL,]
+        }
+        else if (!is.null(input$ggenes)) {
+          sset <- volc_in[volc_in$genes %in% input$ggenes,]
+        }
+        volc = ggplot(volc_in[2:length(volc_in$gene),], aes(logFC, -log10(P.Value))) +
+            geom_point(aes(col=sig)) +
+            scale_color_manual(values = c('Sig' = "red",  'Not Sig' = 'black', "Gene set" = "blue")) +
+            geom_point(data = sset, aes(logFC, -log10(P.Value)), color = 'blue')+
+            #geom_point(data = sset, aes(logFC, -log10(PValue)), color = 'green')+
+            ggtitle(input$gcontrast)
+        if (input$glabel) {
+          volc + ggrepel::geom_text_repel(data = sset, aes(label=gene, segment.curvature = -0.2, segment.inflect = TRUE, segment.angle = 20, segment.ncp = 0, segment.linetype = 6),
+          min.segment.length = unit(0,'lines'), nudge_x = 5, nudge_y = 4, arrow = arrow(length = unit(0.015,'npc')))
+        }
+        else {volc}
+        }}
+      else if (input$graphtomake == 'heatmap') {
+        hm <- cpm(raw_counts$dge, log = TRUE, prior.count = 1)
+        colnames(hm) <- strsplit(str_replace_all(input$group, ' ', ''), ',')[[1]]
+        hm <- hm[,colnames(hm) %in% input$gcondition]
+        rownames(hm) <- raw_counts$dge$genes$genes
+        hm <- hm[rownames(hm) %in% input$ggenes,]
+        pheatmap(hm)
+      }
+    })
+    output$graph <- renderPlot({
+      graph()
+    })
+    output$downloadgraph <- downloadHandler(
+      filename = function() {
+        paste(input$graphtomake, '', sep = "")
+      },
+      content = function(file) {
+      if (input$graphtomake == 'heatmap') {
+
+          save_pheatmap(graph(), file, input$gwidth, input$gheight)
+          #ggsave(file, plot = graph(), width = input$gwidth, height = input$gheight, units = input$gunits, scale = input$gscale)
+      }
+      else {
+        ggsave(file, plot = graph(), width = input$gwidth, height = input$gheight, units = input$gunits, scale = input$gscale, device = 'svg')
+      }
       }
     )
 }
