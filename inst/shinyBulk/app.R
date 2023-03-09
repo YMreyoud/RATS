@@ -262,7 +262,7 @@ server <- function(input, output) {
       output$mds <- renderPlot({
         colConditions <- rainbow(length(levels(raw_counts$dge$samples$group)))
         colConditions <- colConditions[BiocGenerics::match((raw_counts$dge$samples$group), levels(raw_counts$dge$samples$group))]
-        plotMDS(raw_counts$dge, col = colConditions, labels = raw_counts$dge$samples$group)
+        limma::plotMDS(raw_counts$dge, col = colConditions, labels = raw_counts$dge$samples$group)
       })
 
     })
@@ -276,10 +276,10 @@ server <- function(input, output) {
         })
       }
       output$SA <- renderPlot({
-        plotSA(raw_counts$model)
+        limma::plotSA(raw_counts$model)
       })
       output$MD <- renderPlot({
-        plotMD(raw_counts$model)
+        limma::plotMD(raw_counts$model)
       })
     })
     output$selectcon <- renderUI({
@@ -298,7 +298,7 @@ server <- function(input, output) {
       BiocGenerics::paste(BiocGenerics::append(raw_counts$contrasts, 'Current selections:', 0), collapse = ", ")
     })
     observeEvent(input$done, {
-      if (purr::is_empty(raw_counts$contrasts)) return()
+      if (purrr::is_empty(raw_counts$contrasts)) return()
       raw_counts$contrastmat <- limma::makeContrasts(contrasts = raw_counts$contrasts, levels = raw_counts$design.mat)
       raw_counts$model <- limma::contrasts.fit(raw_counts$model, raw_counts$contrastmat)
       raw_counts$model <- limma::eBayes(raw_counts$model)
