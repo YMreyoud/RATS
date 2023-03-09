@@ -19,7 +19,7 @@ Yassin Mreyoud
 - [Contact](#contact)
 
 
-##  1.  Introduction to BulkRNAseqShiny
+##  1. Introduction to BulkRNAseqShiny
 
 This tool uses bioconductor packages [limma](https://bioconductor.org/packages/release/bioc/html/limma.html) and [edgeR](https://bioconductor.org/packages/release/bioc/html/edgeR.html) to perform model fitting and differential gene expression analysis on bulk RNA-seq raw count data.
 
@@ -27,7 +27,7 @@ This tool also provides users the ability to generate several types of plots usi
 
 The sample data used to demonstrate this tool's use was generated from an experiment treating _Mycobacterium tuberculosis_ with DMSO or compound ZD at 40 and 80 micromolar concentrations.
 
-##  2.  Main functionalities of BulkRNAseqShiny
+##  2. Main functionalities of BulkRNAseqShiny
 
 The basic pipeline of BulkRNAseqShiny analysis involves:
 - Loading raw count data from bulk RNA sequencing experiment.
@@ -50,7 +50,7 @@ This package has been tested using R version 4.2.2. This tool also requires inst
   devtools::install_github("YMreyoud/BulkRNAseqShiny")
 ```
 
-##  2.  Launch package
+##  2. Launch package
 To launch the interactive package, use the following command:
 ``` r
   BulkRNAseqShiny::shinyBulk()
