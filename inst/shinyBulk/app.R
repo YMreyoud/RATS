@@ -7,14 +7,14 @@
 #    http://shiny.rstudio.com/
 #
 
-library(shiny)
-library(DT)
-library(tidyverse)
-library(readxl)
-library(edgeR)
-library(limma)
-library(ggrepel)
-library(pheatmap)
+#library(shiny)
+#library(DT)
+#library(tidyverse)
+#library(readxl)
+#library(edgeR)
+#library(limma)
+#library(ggrepel)
+#library(pheatmap)
 
 contrastsvector <- c()
 
@@ -88,10 +88,15 @@ ui <-  fluidPage(titlePanel(windowTitle = "Stallings Lab Bulk RNA Seq Analysis",
   tabPanel("Data Preparation",
     shiny::fluidRow(sidebarLayout(
       sidebarPanel(
-        textInput('genes', 'List column number containing gene names (e.g 1)'),
-        textInput('count', 'List column number of samples you would like to analyze separated by commas (e.g 2,3)'),
-        textInput('group', 'List the label for each sample selected separated by commas (e.g KO_Naive,WT_Naive)'),
-        actionButton('selection', 'Done')
+        uiOutput('selecting'),
+        #selectInput('genes', 'Select the column containing Gene Name information'),
+        #selectInput('count', 'Select the count columns you would like to use in the analysis', multiple = TRUE),
+        #actionButton('selection1', 'Done'),
+        uiOutput('renaming'),
+        #textInput('genes', 'List column number containing gene names (e.g 1)'),
+        #textInput('count', 'List column number of samples you would like to analyze separated by commas (e.g 2,3)'),
+        #textInput('group', 'List the label for each sample selected separated by commas (e.g KO_Naive,WT_Naive)'),
+        #actionButton('selection', 'Done')
       ),
       mainPanel(tabsetPanel(
         tabPanel(
@@ -208,10 +213,41 @@ server <- function(input, output) {
         })
 
     })
+    output$selecting <- renderUI({
+      columns = colnames(raw_counts$obj)
+      output = tagList()
+      output[[1]] = selectInput('genes', 'Select the column containing Gene Name information', choices = columns)
+      output[[2]] = textInput('conditions', 'List all conditions used, separated by commas (e.g. KO_Naive,WT_Naive,...).')
+      output[[3]] = selectInput('count', 'Select the count columns you would like to use in the analysis', multiple = TRUE, choices = columns)
+
+      #output[[3]] = actionButton('selection1', 'Done')
+      output
+    })
+    output$renaming <- renderUI({
+      groups <- strsplit(str_replace_all(input$conditions, ' ', ''), ',')[[1]]
+      if (!is.null(input$count)){
+        output_rename = tagList()
+        for (i in seq_len(length(input$count))) {
+          output_rename[[i]] = selectInput(
+            paste0('col',input$count[[i]]),
+            input$count[[i]],
+            choices = groups
+            )
+        }
+        output_rename[[length(input$count)+1]] = actionButton('selection', 'Done')
+        output_rename
+      }
+    })
     observeEvent(input$selection, {
-      selected <- as.numeric(strsplit(input$count, ',')[[1]])
-      genes <- as.numeric(input$genes)
-      groups <- strsplit(str_replace_all(input$group, ' ', ''), ',')[[1]]
+      selected <- input$count
+      genes <- input$genes
+      #selected <- as.numeric(strsplit(input$count, ',')[[1]])
+      #genes <- as.numeric(input$genes)
+      #groups <- strsplit(str_replace_all(input$group, ' ', ''), ',')[[1]]
+      groups <- c()
+      for (i in seq_len(length(input$count))) {
+        groups <- c(groups, input[[paste0("col", input$count[[i]])]])
+      }
       raw_counts$dge <- DGEList(counts = raw_counts$obj[,selected], genes = raw_counts$obj[,genes],
                                 group = groups) %>% calcNormFactors(method = "TMM")
       raw_counts$design.mat <- model.matrix(~ 0 + raw_counts$dge$samples$group)
@@ -335,11 +371,15 @@ server <- function(input, output) {
         }}
       else if (input$graphtomake == 'heatmap') {
         hm <- cpm(raw_counts$dge, log = TRUE, prior.count = 1)
-        colnames(hm) <- strsplit(str_replace_all(input$group, ' ', ''), ',')[[1]]
+        groups <- c()
+        for (i in seq_len(length(input$count))) {
+          groups <- c(groups, input[[paste0("col", input$count[[i]])]])
+        }
+        colnames(hm) <- groups
         hm <- hm[,colnames(hm) %in% input$gcondition]
         rownames(hm) <- raw_counts$dge$genes$genes
         hm <- hm[rownames(hm) %in% input$ggenes,]
-        pheatmap(hm)
+        pheatmap::pheatmap(hm)
       }
     })
     output$graph <- renderPlot({
@@ -347,12 +387,29 @@ server <- function(input, output) {
     })
     output$downloadgraph <- downloadHandler(
       filename = function() {
-        paste(input$graphtomake, '', sep = "")
+        if (input$graphtomake == 'volcano'){
+          paste(input$graphtomake, '.svg', sep = "")
+        }
+        else {
+          paste(input$graphtomake, '.pdf', sep="")
+        }
       },
       content = function(file) {
       if (input$graphtomake == 'heatmap') {
+        hm <- cpm(raw_counts$dge, log = TRUE, prior.count = 1)
+        groups <- c()
+        for (i in seq_len(length(input$count))) {
+          groups <- c(groups, input[[paste0("col", input$count[[i]])]])
+        }
+        colnames(hm) <- groups
+        hm <- hm[,colnames(hm) %in% input$gcondition]
+        rownames(hm) <- raw_counts$dge$genes$genes
+        hm <- hm[rownames(hm) %in% input$ggenes,]
+        pdf(file, width=input$gwidth, height=input$gheight)
+        pheatmap::pheatmap(hm)
+        dev.off()
 
-          save_pheatmap(graph(), file, input$gwidth, input$gheight)
+          #save_pheatmap(graph(), file, input$gwidth, input$gheight)
           #ggsave(file, plot = graph(), width = input$gwidth, height = input$gheight, units = input$gunits, scale = input$gscale)
       }
       else {
