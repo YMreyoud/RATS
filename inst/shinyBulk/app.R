@@ -295,7 +295,7 @@ server <- function(input, output) {
       #})
     })
     output$currcons <- renderText({
-      paste(append(raw_counts$contrasts, 'Current selections:', 0), IRanges::collapse = ", ")
+      BiocGenerics::paste(BiocGenerics::append(raw_counts$contrasts, 'Current selections:', 0), collapse = ", ")
     })
     observeEvent(input$done, {
       if (purr::is_empty(raw_counts$contrasts)) return()
