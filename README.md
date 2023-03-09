@@ -85,4 +85,39 @@ The user must now define the column that contains the gene information. This can
 
 ![](https://github.com/YMreyoud/BulkRNAseqShiny/images/prep.gif)
 
+## 4. Fit model to data
+Simply use the drop down to select which method to use for data fitting. Voom is recommended for most application, limma should only be used in cases where library size is consistent.
+
+![](https://github.com/YMreyoud/BulkRNAseqShiny/images/model.gif)
+
+## 5. Make desired contrasts
+Use the selection box to pick contrasts one at a time. For example, to compare ZD40 vs DMSO, select ZD40 then DMSO, and click 'Add Contrast' repeat with all the comparisons you would like to make then click 'Done'. If a mistake is made, use the 'Clear' button to reset the list of contrasts. Current contrasts will be shown in the right window separated by commas.
+
+![](https://github.com/YMreyoud/BulkRNAseqShiny/images/contrasts.gif)
+
+## 6. Identify differentially expressed genes
+Select the desired comparison from the drop down menu, and set the remaining parameters as desired. The recommended adjust method is BH (Benjamini-Hochberg). Click 'Done' to generate the list of differentially expressed genes.
+
+A table containing all differentially expressed genes matching the user-defined p-value cutoff for the selected contrast will appear in the right window. To download a csf file of the table, click the 'Download table' button.
+
+![](https://github.com/YMreyoud/BulkRNAseqShiny/images/dge.gif)
+
+## 7. Generate figures
+This tool allows users to generate volcano plots and heatmaps. Use the 'Graph Type' drop down to select which type of graph you would like to generate. Generated graphs will appear on the right side, and can be downloaded using the 'Download' button. Additionally, download options are available for the volcano plots in the 'Download Options' tab. 
+
+### Volcano plot:
+- P value cut-off: select the p-value cutoff to differentiate between significant and non-significant genes
+- Genes (optional): select genes that would like to be highlighted with a blue color
+- Geneset (optional): upload a list of genes to be highlighted with a blue color
+- Contrast: select the comparison you would like to plot
+- Label: If TRUE, any genes provided in the previous fields will be labeled.
+
+![](https://github.com/YMreyoud/BulkRNAseqShiny/images/volcano.gif)
+
+### Heatmap
+- Genes: select the genes you would like to be displayed on the heatmap
+- Conditions: select the conditions you would like to be displayed on the heatmap
+
+![](https://github.com/YMreyoud/BulkRNAseqShiny/images/heatmap.gif)
+
 
