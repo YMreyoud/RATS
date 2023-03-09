@@ -251,7 +251,7 @@ server <- function(input, output) {
         groups <- c(groups, input[[paste0("col", input$count[[i]])]])
       }
       raw_counts$dge <- DGEList(counts = raw_counts$obj[,selected], genes = raw_counts$obj[,genes],
-                                group = groups) %>% calcNormFactors(method = "TMM")
+                                group = groups) %>% edgeR::calcNormFactors(method = "TMM")
       raw_counts$design.mat <- model.matrix(~ 0 + raw_counts$dge$samples$group)
       colnames(raw_counts$design.mat) <- levels(raw_counts$dge$samples$group)
       keep <- filterByExpr(raw_counts$dge, design = raw_counts$design.mat)
