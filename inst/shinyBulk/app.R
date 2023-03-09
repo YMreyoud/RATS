@@ -367,7 +367,7 @@ server <- function(input, output) {
             ggplot2::ggtitle(input$gcontrast)
         if (input$glabel) {
           volc + ggrepel::geom_text_repel(data = sset, ggplot2::aes(label=gene, segment.curvature = -0.2, segment.inflect = TRUE, segment.angle = 20, segment.ncp = 0, segment.linetype = 6),
-          min.segment.length = ggplot2::unit(0,'lines'), nudge_x = 5, nudge_y = 4, arrow = arrow(length = ggplot2::unit(0.015,'npc')))
+          min.segment.length = ggplot2::unit(0,'lines'), nudge_x = 5, nudge_y = 4, arrow = ggplot2::arrow(length = ggplot2::unit(0.015,'npc')))
         }
         else {volc}
         }}
@@ -390,7 +390,7 @@ server <- function(input, output) {
     output$downloadgraph <- downloadHandler(
       filename = function() {
         if (input$graphtomake == 'volcano'){
-          paste(input$graphtomake, '.svg', sep = "")
+          paste(input$graphtomake, input$gmode, sep = "")
         }
         else {
           paste(input$graphtomake, '.pdf', sep="")
@@ -415,7 +415,7 @@ server <- function(input, output) {
           #ggsave(file, plot = graph(), width = input$gwidth, height = input$gheight, units = input$gunits, scale = input$gscale)
       }
       else {
-        ggplot2::ggsave(file, plot = graph(), width = input$gwidth, height = input$gheight, units = input$gunits, scale = input$gscale, device = 'svg')
+        ggplot2::ggsave(file, plot = graph(), width = input$gwidth, height = input$gheight, units = input$gunits, scale = input$gscale)
       }
       }
     )
