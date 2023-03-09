@@ -22,4 +22,7 @@ Imports:
   readxl,
   edgeR,
   limma,
-  BiocGenerics
+  BiocGenerics,
+  pheatmap,
+  ggpubr,
+  ggrepel
