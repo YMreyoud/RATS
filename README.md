@@ -83,6 +83,8 @@ The user must now define the column that contains the gene information. This can
 - Select the columns containing count data for the samples you would like to analyze
 - Use the drop-down menus to label each sample with it's corresponding condition. 
 
+
+
 ![](https://github.com/YMreyoud/BulkRNAseqShiny/blob/main/images/prep.gif)
 
 ## 4. Fit model to data
@@ -112,11 +114,15 @@ This tool allows users to generate volcano plots and heatmaps. Use the 'Graph Ty
 - Contrast: select the comparison you would like to plot
 - Label: If TRUE, any genes provided in the previous fields will be labeled.
 
+
+
 ![](https://github.com/YMreyoud/BulkRNAseqShiny/blob/main/images/volcano.gif)
 
 ### Heatmap
 - Genes: select the genes you would like to be displayed on the heatmap
 - Conditions: select the conditions you would like to be displayed on the heatmap
+
+
 
 ![](https://github.com/YMreyoud/BulkRNAseqShiny/blob/main/images/heatmap.gif)
 
