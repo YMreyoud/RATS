@@ -66,6 +66,21 @@ In this walkthrough we will perform a standard bulk RNA-sequencing analysis on d
 The samples have been sequenced using the Illumina Noviseq system, aligned using STAR, and quality controlled using FastQC.
 This data has not yet been published but can be downloaded by ollowing this [link](https://github.com/YMreyoud/BulkRNAseqShiny/data/all.gene_counts.tsv)
 
-## 2. Download and import data
+## 2. Download and load data
 
 Once the all.gene_counts.tsv file has been downloaded from this [link](https://github.com/YMreyoud/BulkRNAseqShiny/data/all.gene_counts.tsv) the data can be imported into the tool by using the file upload field. Next, select which type of file is being uploaded (.csv or .tsv) and upload the data by clicking the 'Upload' button.
+
+After the data is uploaded, it can be browsed in the right window.
+
+![](https://github.com/YMreyoud/BulkRNAseqShiny/images/input.gif)
+
+## 3. Prepare data for analysis
+The user must now define the column that contains the gene information. This can be gene name, gene ID, or any other gene-specific information you would like to use. For this walkthrough we will use the ensemble_gene_id column.
+- Use the drop down menu to select the column containing your gene-specific information
+- List all conditions you would like to analyze separated by commas. For this experiment our conditions are: ZD40, ZD80, DMSO
+- Select the columns containing count data for the samples you would like to analyze
+- Use the drop-down menus to label each sample with it's corresponding condition. 
+
+![](https://github.com/YMreyoud/BulkRNAseqShiny/images/prep.gif)
+
+
