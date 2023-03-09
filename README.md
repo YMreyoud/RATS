@@ -17,6 +17,8 @@ Yassin Mreyoud
   - [6. Identify differentially expressed genes](#6-identify-differentially-expressed-genes)
   - [7. Generate figures](#7-generate-figures)
 - [Contact](#contact)
+
+
 ##  1.  Introduction to BulkRNAseqShiny
 
 This tool uses bioconductor packages [limma](https://bioconductor.org/packages/release/bioc/html/limma.html) and [edgeR](https://bioconductor.org/packages/release/bioc/html/edgeR.html) to perform model fitting and differential gene expression analysis on bulk RNA-seq raw count data.
