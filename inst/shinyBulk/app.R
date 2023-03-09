@@ -250,18 +250,18 @@ server <- function(input, output) {
       for (i in seq_len(length(input$count))) {
         groups <- c(groups, input[[paste0("col", input$count[[i]])]])
       }
-      raw_counts$dge <- DGEList(counts = raw_counts$obj[,selected], genes = raw_counts$obj[,genes],
+      raw_counts$dge <- edgeR::DGEList(counts = raw_counts$obj[,selected], genes = raw_counts$obj[,genes],
                                 group = groups) %>% edgeR::calcNormFactors(method = "TMM")
-      raw_counts$design.mat <- model.matrix(~ 0 + raw_counts$dge$samples$group)
+      raw_counts$design.mat <- stats::model.matrix(~ 0 + raw_counts$dge$samples$group)
       colnames(raw_counts$design.mat) <- levels(raw_counts$dge$samples$group)
-      keep <- filterByExpr(raw_counts$dge, design = raw_counts$design.mat)
+      keep <- edgeR::filterByExpr(raw_counts$dge, design = raw_counts$design.mat)
       raw_counts$dge <- raw_counts$dge[keep,]
       output$bplot <- renderPlot({
         barplot(raw_counts$dge$samples$lib.size, names=colnames(raw_counts$dge),las=2)
       })
       output$mds <- renderPlot({
         colConditions <- rainbow(length(levels(raw_counts$dge$samples$group)))
-        colConditions <- colConditions[match((raw_counts$dge$samples$group), levels(raw_counts$dge$samples$group))]
+        colConditions <- colConditions[BiocGenerics::match((raw_counts$dge$samples$group), levels(raw_counts$dge$samples$group))]
         plotMDS(raw_counts$dge, col = colConditions, labels = raw_counts$dge$samples$group)
       })
 
@@ -286,7 +286,7 @@ server <- function(input, output) {
       selectizeInput("selected", "Select Contrast", choices = levels(raw_counts$dge$samples$group), selected = NULL, options = list(maxItems = 2))
     })
     observeEvent(input$add, {
-      raw_counts$contrasts <- append(raw_counts$contrasts, str_c(input$selected[1],'-',input$selected[2]))
+      raw_counts$contrasts <- BiocGenerics::append(raw_counts$contrasts, stringr::str_c(input$selected[1],'-',input$selected[2]))
     })
     observeEvent(input$clear, {
       raw_counts$contrasts <- c()
@@ -295,19 +295,19 @@ server <- function(input, output) {
       #})
     })
     output$currcons <- renderText({
-      paste(append(raw_counts$contrasts, 'Current selections:', 0), collapse = ", ")
+      paste(append(raw_counts$contrasts, 'Current selections:', 0), IRanges::collapse = ", ")
     })
     observeEvent(input$done, {
-      if (is_empty(raw_counts$contrasts)) return()
-      raw_counts$contrastmat <- makeContrasts(contrasts = raw_counts$contrasts, levels = raw_counts$design.mat)
-      raw_counts$model <- contrasts.fit(raw_counts$model, raw_counts$contrastmat)
-      raw_counts$model <- eBayes(raw_counts$model)
+      if (purr::is_empty(raw_counts$contrasts)) return()
+      raw_counts$contrastmat <- limma::makeContrasts(contrasts = raw_counts$contrasts, levels = raw_counts$design.mat)
+      raw_counts$model <- limma::contrasts.fit(raw_counts$model, raw_counts$contrastmat)
+      raw_counts$model <- limma::eBayes(raw_counts$model)
     })
     output$comparison <- renderUI({
       selectizeInput("comparisons", "Select Comparison", choices = colnames(raw_counts$model$contrasts), selected = NULL, options = list(maxItems = 1))
     })
     observeEvent(input$rundge, {
-      raw_counts$DEGS <- topTable(raw_counts$model, coef = input$comparisons, number = Inf, adjust.method = input$adjust, sort.by = input$sortby, p.value = input$pcutoff)
+      raw_counts$DEGS <- limma::topTable(raw_counts$model, coef = input$comparisons, number = Inf, adjust.method = input$adjust, sort.by = input$sortby, p.value = input$pcutoff)
       print(raw_counts$DEGS)
       output$DEGS <- DT::renderDataTable({
         DT::datatable(
@@ -335,44 +335,44 @@ server <- function(input, output) {
     graph <- eventReactive(input$graphbutton, {
       req(raw_counts$dge, input$graphtomake, raw_counts$model)
       if (input$graphtomake == "volcano") {
-        top.table <- topTable(raw_counts$model, coef = input$gcontrast, number = Inf, adjust.method = 'BH', p.value = 1)
-        top.table <- as.data.frame(top.table)
+        top.table <- limma::topTable(raw_counts$model, coef = input$gcontrast, number = Inf, adjust.method = 'BH', p.value = 1)
+        top.table <- BiocGenerics::as.data.frame(top.table)
         differential<-top.table
-        mutateddf <- mutate(differential, sig = ifelse(differential$P.Value<input$gpvalue, "Sig", "Not Sig"))
-        volc_in <- cbind(gene=mutateddf[,1], mutateddf)
+        mutateddf <- ggpubr::mutate(differential, sig = ifelse(differential$P.Value<input$gpvalue, "Sig", "Not Sig"))
+        volc_in <- BiocGenerics::cbind(gene=mutateddf[,1], mutateddf)
         print((input$ggeneset$datapath))
         print(is.null(input$ggenes))
         if (is.null(input$ggeneset) & is.null(input$ggenes)){
-          volc = ggplot(volc_in[2:length(volc_in$gene),], aes(logFC, -log10(P.Value))) +
-            geom_point(aes(col=sig)) +
-            scale_color_manual(values = c('Sig' = "red",  'Not Sig' = 'black')) +
-            ggtitle(input$gcontrast)
+          volc = ggplot2::ggplot(volc_in[2:length(volc_in$gene),], aes(logFC, -log10(P.Value))) +
+            ggplot2::geom_point(aes(col=sig)) +
+            ggplot2::scale_color_manual(values = c('Sig' = "red",  'Not Sig' = 'black')) +
+            ggplot2::ggtitle(input$gcontrast)
           volc
         }
         else {
           if (!is.null(input$ggeneset)) {
-          geneset <- read_tsv(input$ggeneset$datapath)
-          geneset <- geneset %>% mutate(SYMBOL = str_trim(str_to_title(SYMBOL)))
+          geneset <- readr::read_tsv(input$ggeneset$datapath)
+          geneset <- geneset %>% ggpubr::mutate(SYMBOL = stringr::str_trim(stringr::str_to_title(SYMBOL)))
           geneset <- as.list(geneset['SYMBOL'])
           sset<- volc_in[volc_in$genes %in% geneset$SYMBOL,]
         }
         else if (!is.null(input$ggenes)) {
           sset <- volc_in[volc_in$genes %in% input$ggenes,]
         }
-        volc = ggplot(volc_in[2:length(volc_in$gene),], aes(logFC, -log10(P.Value))) +
-            geom_point(aes(col=sig)) +
-            scale_color_manual(values = c('Sig' = "red",  'Not Sig' = 'black', "Gene set" = "blue")) +
-            geom_point(data = sset, aes(logFC, -log10(P.Value)), color = 'blue')+
+        volc = ggplot2::ggplot(volc_in[2:length(volc_in$gene),], ggplot2::aes(logFC, -log10(P.Value))) +
+            ggplot2::geom_point(ggplot2::aes(col=sig)) +
+            ggplot2::scale_color_manual(values = c('Sig' = "red",  'Not Sig' = 'black', "Gene set" = "blue")) +
+            ggplot2::geom_point(data = sset, ggplot2::aes(logFC, -log10(P.Value)), color = 'blue')+
             #geom_point(data = sset, aes(logFC, -log10(PValue)), color = 'green')+
-            ggtitle(input$gcontrast)
+            ggplot2::ggtitle(input$gcontrast)
         if (input$glabel) {
-          volc + ggrepel::geom_text_repel(data = sset, aes(label=gene, segment.curvature = -0.2, segment.inflect = TRUE, segment.angle = 20, segment.ncp = 0, segment.linetype = 6),
+          volc + ggrepel::geom_text_repel(data = sset, ggplot2::aes(label=gene, segment.curvature = -0.2, segment.inflect = TRUE, segment.angle = 20, segment.ncp = 0, segment.linetype = 6),
           min.segment.length = unit(0,'lines'), nudge_x = 5, nudge_y = 4, arrow = arrow(length = unit(0.015,'npc')))
         }
         else {volc}
         }}
       else if (input$graphtomake == 'heatmap') {
-        hm <- cpm(raw_counts$dge, log = TRUE, prior.count = 1)
+        hm <- edgeR::cpm(raw_counts$dge, log = TRUE, prior.count = 1)
         groups <- c()
         for (i in seq_len(length(input$count))) {
           groups <- c(groups, input[[paste0("col", input$count[[i]])]])
