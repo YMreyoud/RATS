@@ -8,7 +8,7 @@ Yassin Mreyoud
 - [Installation](#installation)
   - [1. Install the package from github](#1-install-the-package-from-github)
   - [2. Launch package](#2-launch-package)
-- [Walkthrough: Bulkseq analysis of three condition experiment](#walkthrough-bulkseq-analysis-of-three-condition-design)
+- [Walkthrough: Bulkseq analysis of three condition experiment](#walkthrough-bulkseq-analysis-of-three-condition-experiment)
   - [1. Introduction](#1-introduction)
   - [2. Download and load data](#2-download-and-load-data)
   - [3. Prepare data for analysis](#3-prepare-data-for-analysis)
