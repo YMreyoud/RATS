@@ -398,7 +398,7 @@ server <- function(input, output) {
       },
       content = function(file) {
       if (input$graphtomake == 'heatmap') {
-        hm <- cpm(raw_counts$dge, log = TRUE, prior.count = 1)
+        hm <- edgeR::cpm(raw_counts$dge, log = TRUE, prior.count = 1)
         groups <- c()
         for (i in seq_len(length(input$count))) {
           groups <- c(groups, input[[paste0("col", input$count[[i]])]])
@@ -415,7 +415,7 @@ server <- function(input, output) {
           #ggsave(file, plot = graph(), width = input$gwidth, height = input$gheight, units = input$gunits, scale = input$gscale)
       }
       else {
-        ggsave(file, plot = graph(), width = input$gwidth, height = input$gheight, units = input$gunits, scale = input$gscale, device = 'svg')
+        ggplot2::ggsave(file, plot = graph(), width = input$gwidth, height = input$gheight, units = input$gunits, scale = input$gscale, device = 'svg')
       }
       }
     )
