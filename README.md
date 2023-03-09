@@ -1,5 +1,5 @@
 # BulkRNAseqShiny
-===================
+================
 Yassin Mreyoud, 3/9/23
 
 - [1. Introduction to BulkRNAseqShiny](#1-introduction-to-bulkrnaseqshiny)
