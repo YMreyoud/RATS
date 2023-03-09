@@ -74,7 +74,7 @@ Once the all.gene_counts.tsv file has been downloaded from this [link](https://g
 
 After the data is uploaded, it can be browsed in the right window.
 
-![](https://github.com/YMreyoud/BulkRNAseqShiny/images/input.gif)
+![](https://github.com/YMreyoud/BulkRNAseqShiny/blob/main/images/input.gif)
 
 ## 3. Prepare data for analysis
 The user must now define the column that contains the gene information. This can be gene name, gene ID, or any other gene-specific information you would like to use. For this walkthrough we will use the ensemble_gene_id column.
@@ -83,24 +83,24 @@ The user must now define the column that contains the gene information. This can
 - Select the columns containing count data for the samples you would like to analyze
 - Use the drop-down menus to label each sample with it's corresponding condition. 
 
-![](https://github.com/YMreyoud/BulkRNAseqShiny/images/prep.gif)
+![](https://github.com/YMreyoud/BulkRNAseqShiny/blob/main/images/prep.gif)
 
 ## 4. Fit model to data
 Simply use the drop down to select which method to use for data fitting. Voom is recommended for most application, limma should only be used in cases where library size is consistent.
 
-![](https://github.com/YMreyoud/BulkRNAseqShiny/images/model.gif)
+![](https://github.com/YMreyoud/BulkRNAseqShiny/blob/main/images/model.gif)
 
 ## 5. Make desired contrasts
 Use the selection box to pick contrasts one at a time. For example, to compare ZD40 vs DMSO, select ZD40 then DMSO, and click 'Add Contrast' repeat with all the comparisons you would like to make then click 'Done'. If a mistake is made, use the 'Clear' button to reset the list of contrasts. Current contrasts will be shown in the right window separated by commas.
 
-![](https://github.com/YMreyoud/BulkRNAseqShiny/images/contrasts.gif)
+![](https://github.com/YMreyoud/BulkRNAseqShiny/blob/main/images/contrasts.gif)
 
 ## 6. Identify differentially expressed genes
 Select the desired comparison from the drop down menu, and set the remaining parameters as desired. The recommended adjust method is BH (Benjamini-Hochberg). Click 'Done' to generate the list of differentially expressed genes.
 
 A table containing all differentially expressed genes matching the user-defined p-value cutoff for the selected contrast will appear in the right window. To download a csf file of the table, click the 'Download table' button.
 
-![](https://github.com/YMreyoud/BulkRNAseqShiny/images/dge.gif)
+![](https://github.com/YMreyoud/BulkRNAseqShiny/blob/main/images/dge.gif)
 
 ## 7. Generate figures
 This tool allows users to generate volcano plots and heatmaps. Use the 'Graph Type' drop down to select which type of graph you would like to generate. Generated graphs will appear on the right side, and can be downloaded using the 'Download' button. Additionally, download options are available for the volcano plots in the 'Download Options' tab. 
@@ -112,12 +112,12 @@ This tool allows users to generate volcano plots and heatmaps. Use the 'Graph Ty
 - Contrast: select the comparison you would like to plot
 - Label: If TRUE, any genes provided in the previous fields will be labeled.
 
-![](https://github.com/YMreyoud/BulkRNAseqShiny/images/volcano.gif)
+![](https://github.com/YMreyoud/BulkRNAseqShiny/blob/main/images/volcano.gif)
 
 ### Heatmap
 - Genes: select the genes you would like to be displayed on the heatmap
 - Conditions: select the conditions you would like to be displayed on the heatmap
 
-![](https://github.com/YMreyoud/BulkRNAseqShiny/images/heatmap.gif)
+![](https://github.com/YMreyoud/BulkRNAseqShiny/blob/main/images/heatmap.gif)
 
 
