@@ -1,6 +1,7 @@
 BulkRNAseqShiny
 ================
-Yassin Mreyoud, 3/9/23
+Yassin Mreyoud
+03-09-2023
 
 - [1. Introduction to BulkRNAseqShiny](#1-introduction-to-bulkrnaseqshiny)
 - [2. Main functionalities of BulkRNAseqShiny](#2-main-functionalities-of-bulkrnaseqshiny)
