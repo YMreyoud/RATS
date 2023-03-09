@@ -367,7 +367,7 @@ server <- function(input, output) {
             ggplot2::ggtitle(input$gcontrast)
         if (input$glabel) {
           volc + ggrepel::geom_text_repel(data = sset, ggplot2::aes(label=gene, segment.curvature = -0.2, segment.inflect = TRUE, segment.angle = 20, segment.ncp = 0, segment.linetype = 6),
-          min.segment.length = unit(0,'lines'), nudge_x = 5, nudge_y = 4, arrow = arrow(length = unit(0.015,'npc')))
+          min.segment.length = ggplot2::unit(0,'lines'), nudge_x = 5, nudge_y = 4, arrow = arrow(length = ggplot2::unit(0.015,'npc')))
         }
         else {volc}
         }}

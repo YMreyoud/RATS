@@ -25,4 +25,5 @@ Imports:
   BiocGenerics,
   pheatmap,
   ggpubr,
-  ggrepel
+  ggrepel,
+  svglite
