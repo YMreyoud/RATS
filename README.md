@@ -17,3 +17,41 @@ Yassin Mreyoud
   - [6. Identify differentially expressed genes](#6-identify-differentially-expressed-genes)
   - [7. Generate figures](#7-generate-figures)
 - [Contact](#contact)
+##  1.  Introduction to BulkRNAseqShiny
+
+This tool uses bioconductor packages [limma](https://bioconductor.org/packages/release/bioc/html/limma.html) and [edgeR](https://bioconductor.org/packages/release/bioc/html/edgeR.html) to perform model fitting and differential gene expression analysis on bulk RNA-seq raw count data.
+
+This tool also provides users the ability to generate several types of plots using [ggplot2](https://ggplot2.tidyverse.org/) and [pheatmap](https://www.rdocumentation.org/packages/pheatmap/versions/1.0.12/topics/pheatmap) packages. 
+
+The sample data used to demonstrate this tool's use was generated from an experiment treating _Mycobacterium tuberculosis_ with DMSO or compound ZD at 40 and 80 micromolar concentrations.
+
+##  2.  Main functionalities of BulkRNAseqShiny
+
+The basic pipeline of BulkRNAseqShiny analysis involves:
+- Loading raw count data from bulk RNA sequencing experiment.
+- pre-processing data to define columns containing samples, genes, and conditions.
+- Fitting a model to the data using limma or voom.
+- Declaring which contrasts to make.
+- Performing differential gene expression analysis.
+- Generating figures.
+
+# Installation
+
+## 1. Install the package from github
+
+This package has been tested using R version 4.2.2. This tool also requires instllation of devtools and BiocManager if not already installed.
+``` r
+  # Install devtools and BiocManager if not already installed
+  require(devtools,BiocManager)
+  
+  # Install BulkRNAseqShiny
+  devtools::install_github("YMreyoud/BulkRNAseqShiny")
+```
+
+##  2.  Launch package
+To launch the interactive package, use the following command:
+``` r
+  BulkRNAseqShiny::shinyBulk()
+```
+This will open an browser-based window for interactive use of the tool.
+Note: you may need to click 'open in browser' at the top of the window if the window is gray.
