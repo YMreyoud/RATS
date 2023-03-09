@@ -224,7 +224,7 @@ server <- function(input, output) {
       output
     })
     output$renaming <- renderUI({
-      groups <- strsplit(str_replace_all(input$conditions, ' ', ''), ',')[[1]]
+      groups <- strsplit(stringr::str_replace_all(input$conditions, ' ', ''), ',')[[1]]
       if (!is.null(input$count)){
         output_rename = tagList()
         for (i in seq_len(length(input$count))) {
