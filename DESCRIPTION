@@ -14,10 +14,12 @@ Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.0
+biocViews: Software
 Imports:
   shiny,
   DT,
   tidyverse,
   readxl,
   edgeR,
-  limma
+  limma,
+  BiocGenerics
