@@ -55,3 +55,17 @@ To launch the interactive package, use the following command:
 ```
 This will open an browser-based window for interactive use of the tool.
 Note: you may need to click 'open in browser' at the top of the window if the window is gray.
+
+# Walkthrough: Bulkseq analysis of three condition experiment
+
+##  1. Introduction
+In this walkthrough we will perform a standard bulk RNA-sequencing analysis on data generated from an experiment treating _Mycobacterium tuberculosis_ with one of three conditions:
+- ZD 40um
+- ZD 80um
+- DMSO
+The samples have been sequenced using the Illumina Noviseq system, aligned using STAR, and quality controlled using FastQC.
+This data has not yet been published but can be downloaded by ollowing this [link](https://github.com/YMreyoud/BulkRNAseqShiny/data/all.gene_counts.tsv)
+
+## 2. Download and import data
+
+Once the all.gene_counts.tsv file has been downloaded from this [link](https://github.com/YMreyoud/BulkRNAseqShiny/data/all.gene_counts.tsv) the data can be imported into the tool by using the file upload field. Next, select which type of file is being uploaded (.csv or .tsv) and upload the data by clicking the 'Upload' button.
