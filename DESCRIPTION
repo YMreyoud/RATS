@@ -37,7 +37,8 @@ Imports:
   scales,
   msigdbr,
   shinythemes,
-  velocyto.r
+  velocyto.R
 Remotes:
   satijalab/seurat-wrappers,
-  satijalab/seurat-data
+  satijalab/seurat-data,
+  velocyto-team/velocyto.R
