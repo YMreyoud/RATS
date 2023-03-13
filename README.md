@@ -1,4 +1,4 @@
-RNA-seq Analysis Tool Kit (RATK)
+Comprehensive Analysis of RNA-seq Data (CARD)
 ================
 Yassin Mreyoud
 03-09-2023
