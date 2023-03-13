@@ -378,7 +378,7 @@ ui <- fluidPage(titlePanel(windowTitle = "Stallings Lab Single-Cell RNA Seq Anal
         ),
         tabPanel(
           "EnrichR",
-          selectInput("dbs", "EnrichR Databases to use", choices = sort(enrichR::listEnrichrDbs()$libraryName), multiple = TRUE),
+          selectInput("dbs", "EnrichR Databases to use", choices = BiocGenerics::sort(enrichR::listEnrichrDbs()$libraryName), multiple = TRUE),
           actionButton("enrich", "Run EnrichR")
         )
       )),
