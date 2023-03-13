@@ -36,10 +36,7 @@ Imports:
   SeuratObject,
   scales,
   msigdbr,
-  shinythemes,
-  pcaMethods,
-  velocyto.R
+  shinythemes
 Remotes:
   satijalab/seurat-wrappers,
-  satijalab/seurat-data,
-  velocyto-team/velocyto.R
+  satijalab/seurat-data
