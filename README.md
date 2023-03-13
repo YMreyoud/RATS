@@ -1,4 +1,4 @@
-BulkRNAseqShiny
+RNA-seq Analysis Tool Kit (RATK)
 ================
 Yassin Mreyoud
 03-09-2023
