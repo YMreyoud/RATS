@@ -41,10 +41,10 @@ The basic pipeline of BulkRNAseqShiny analysis involves:
 
 ## 1. Install the package from github
 
-This package has been tested using R version 4.2.2. This tool also requires instllation of devtools and BiocManager if not already installed.
+This package has been tested using R version 4.2.2. This tool also requires instllation of R.utils, devtools, and BiocManager if not already installed.
 ``` r
   # Install devtools and BiocManager if not already installed
-  require(devtools,BiocManager)
+  require(devtools,BiocManager, R.utils)
   
   # Install BulkRNAseqShiny
   devtools::install_github("YMreyoud/BulkRNAseqShiny")
