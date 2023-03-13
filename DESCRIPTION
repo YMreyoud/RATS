@@ -26,4 +26,17 @@ Imports:
   pheatmap,
   ggpubr,
   ggrepel,
-  svglite
+  svglite,
+  Seurat,
+  SeuratWrappers,
+  celldex,
+  SingleR,
+  enrichR,
+  SeuratData,
+  SeuratObject,
+  scales,
+  msigdbr,
+  shinythemes
+Remotes:
+  satijalab/seurat-wrappers
+  satijalab/seurat-data
