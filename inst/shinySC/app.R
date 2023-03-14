@@ -28,11 +28,15 @@
 
 
 `%>%` <- magrittr::`%>%`
-mouse_mito <- readr::read_csv(file = "Mouse.MitoCarta2.0.csv") %>% # Import list of mouse mitochondrial genes
-  dplyr::select(c(Symbol, MCARTA2.0_score)) %>%
-  dplyr::arrange(desc(MCARTA2.0_score)) %>%
+mouse_mito <- readr::read_csv(file = "Mouse.MitoCarta3.0.csv") %>% # Import list of mouse mitochondrial genes
+  dplyr::select(c(Symbol, MitoCarta2.0_Score)) %>%
+  dplyr::arrange(desc(MitoCarta2.0_Score)) %>%
   head(200)
-mito.genes <- as.character(mouse_mito$Symbol)
+human_mito <- readr::read_csv(file = "Human.MitoCarta3.0.csv") %>% # Import list of mouse mitochondrial genes
+  dplyr::select(c(Symbol, MitoCarta2.0_Score)) %>%
+  dplyr::arrange(desc(MitoCarta2.0_Score)) %>%
+  head(200)
+mito.genes <- c(as.character(mouse_mito$Symbol), as.character(human_mito$Symbol))
 
 
 renew_merged <- function(names, paths, read10x) {
