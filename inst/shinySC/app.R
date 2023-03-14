@@ -921,13 +921,14 @@ server <- function(input, output) {
       ggplot2::ggsave(file, plot = graph(), width = input$gwidth, height = input$gheight, units = input$gunits, scale = input$gscale)
     }
   )
-  volumes <- shinyFiles::getVolumes()
+  volumes <- shinyFiles::getVolumes()()
   shinyFiles::shinyDirChoose(
     input,
     'testdir',
-    roots = c(home = '~')
+    #roots = c(home = '~')
+    roots = volumes
   )
-  dirname <- reactive({shinyFiles::parseDirPath(c(home='~'), input$testdir)})
+  dirname <- reactive({shinyFiles::parseDirPath(volumes, input$testdir)})
   subdirs <- reactive({list.dirs(dirname(), recursive = FALSE)})
   names <- reactive ({list.dirs(dirname(), full.names = FALSE, recursive = FALSE)})
   observe({
