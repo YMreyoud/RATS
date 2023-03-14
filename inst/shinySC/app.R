@@ -40,8 +40,6 @@ mito.genes <- c(as.character(mouse_mito$Symbol), as.character(human_mito$Symbol)
 
 
 renew_merged <- function(names, paths, read10x) {
-  print(names)
-  print(paths)
   list <- list()
   cell.ids <<- list()
   if (!read10x) {
@@ -64,8 +62,6 @@ renew_merged <- function(names, paths, read10x) {
       temp.data <- Seurat::Read10X(data.dir = paths[x])
       temp <- Seurat::CreateSeuratObject(temp.data)
       temp.mito <- mito.genes[mito.genes %in% rownames(temp)]
-      print(temp.mito)
-      print(temp)
       #temp[["percent.mt"]] <- colSums(temp[temp.mito, ]) / colSums(temp) * 100
       temp[["percent.mt"]] <- Seurat::PercentageFeatureSet(temp, pattern = "^MT-")
       temp@meta.data[, "condition"] <- names[x]
@@ -94,7 +90,7 @@ renew_merged <- function(names, paths, read10x) {
   integrated <- Seurat::IntegrateData(anchorset = anchors, dims = 1:30)
   merged <- integrated
   # Run the standard workflow for visualization and clustering
-  DefaultAssay(merged) <- "integrated"
+  Seurat::DefaultAssay(merged) <- "integrated"
   merged <- Seurat::ScaleData(merged)
   merged <- Seurat::RunPCA(merged, npcs = 30, verbose = FALSE)
   merged <- Seurat::RunUMAP(merged, reduction = "pca", dims = 1:30)
