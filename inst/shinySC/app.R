@@ -50,8 +50,8 @@ renew_merged <- function(names, paths, read10x) {
       temp <- Seurat::as.Seurat(temp.data)
       temp[["RNA"]] <- temp[["spliced"]]
       temp.mito <- mito.genes[mito.genes %in% rownames(temp)]
-      temp[["percent.mt"]] <- colSums(temp[temp.mito, ]) / colSums(temp) * 100
-      # temp[["percent.mt"]] <- PercentageFeatureSet(temp, pattern = "^MT-")
+      #temp[["percent.mt"]] <- colSums(temp[temp.mito, ]) / colSums(temp) * 100
+      temp[["percent.mt"]] <- Seurat::PercentageFeatureSet(temp, pattern = "^MT-")
       temp@meta.data[, "condition"] <- stringr::str_replace(names[x], ".loom", "")
       condition <- stringr::str_replace(names[x], ".loom", "")
       # assign(condition, temp)
@@ -64,8 +64,10 @@ renew_merged <- function(names, paths, read10x) {
       temp.data <- Seurat::Read10X(data.dir = paths[x])
       temp <- Seurat::CreateSeuratObject(temp.data)
       temp.mito <- mito.genes[mito.genes %in% rownames(temp)]
-      temp[["percent.mt"]] <- colSums(temp[temp.mito, ]) / colSums(temp) * 100
-      # temp[["percent.mt"]] <- PercentageFeatureSet(temp, pattern = "^MT-")
+      print(temp.mito)
+      print(temp)
+      #temp[["percent.mt"]] <- colSums(temp[temp.mito, ]) / colSums(temp) * 100
+      temp[["percent.mt"]] <- Seurat::PercentageFeatureSet(temp, pattern = "^MT-")
       temp@meta.data[, "condition"] <- names[x]
       condition <- names[x]
       # assign(condition, temp)
