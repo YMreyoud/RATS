@@ -36,7 +36,8 @@ Imports:
   SeuratObject,
   scales,
   msigdbr,
-  shinythemes
+  shinythemes,
+  shinyFiles
 Remotes:
   satijalab/seurat-wrappers,
   satijalab/seurat-data
