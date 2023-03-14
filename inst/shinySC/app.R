@@ -35,23 +35,39 @@ mouse_mito <- readr::read_csv(file = "Mouse.MitoCarta2.0.csv") %>% # Import list
 mito.genes <- as.character(mouse_mito$Symbol)
 
 
-renew_merged <- function(names, paths) {
+renew_merged <- function(names, paths, read10x) {
   print(names)
   print(paths)
   list <- list()
   cell.ids <<- list()
-  for (x in 1:length(paths)) {
-    temp.data <- SeuratWrappers::ReadVelocity(file = paths[x])
-    temp <- Seurat::as.Seurat(temp.data)
-    temp[["RNA"]] <- temp[["spliced"]]
-    temp.mito <- mito.genes[mito.genes %in% rownames(temp)]
-    temp[["percent.mt"]] <- colSums(temp[temp.mito, ]) / colSums(temp) * 100
-    # temp[["percent.mt"]] <- PercentageFeatureSet(temp, pattern = "^MT-")
-    temp@meta.data[, "condition"] <- stringr::str_replace(names[x], ".loom", "")
-    condition <- stringr::str_replace(names[x], ".loom", "")
-    # assign(condition, temp)
-    list <- c(list, temp)
-    cell.ids <<- c(cell.ids, condition)
+  if (!read10x) {
+    for (x in 1:length(paths)) {
+      temp.data <- SeuratWrappers::ReadVelocity(file = paths[x])
+      temp <- Seurat::as.Seurat(temp.data)
+      temp[["RNA"]] <- temp[["spliced"]]
+      temp.mito <- mito.genes[mito.genes %in% rownames(temp)]
+      temp[["percent.mt"]] <- colSums(temp[temp.mito, ]) / colSums(temp) * 100
+      # temp[["percent.mt"]] <- PercentageFeatureSet(temp, pattern = "^MT-")
+      temp@meta.data[, "condition"] <- stringr::str_replace(names[x], ".loom", "")
+      condition <- stringr::str_replace(names[x], ".loom", "")
+      # assign(condition, temp)
+      list <- c(list, temp)
+      cell.ids <<- c(cell.ids, condition)
+    }
+  }
+  else {
+    for (x in 1:length(paths)) {
+      temp.data <- Seurat::Read10X(data.dir = paths[x])
+      temp <- Seurat::CreateSeuratObject(temp.data)
+      temp.mito <- mito.genes[mito.genes %in% rownames(temp)]
+      temp[["percent.mt"]] <- colSums(temp[temp.mito, ]) / colSums(temp) * 100
+      # temp[["percent.mt"]] <- PercentageFeatureSet(temp, pattern = "^MT-")
+      temp@meta.data[, "condition"] <- names[x]
+      condition <- names[x]
+      # assign(condition, temp)
+      list <- c(list, temp)
+      cell.ids <<- c(cell.ids, condition)
+    }
   }
   for (i in seq_along(list)) {
     list[[i]] <- Seurat::NormalizeData(list[[i]], verbose = FALSE)
@@ -87,21 +103,33 @@ renew_merged <- function(names, paths) {
   return(merged)
 }
 
-renew_integrated <- function(names, paths) {
+renew_integrated <- function(names, paths, read10x) {
   print(names)
   print(paths)
   list <- list()
   cell.ids <<- list()
-  for (x in 1:length(paths)) {
-    temp.data <- SeuratWrappers::ReadVelocity(file = paths[x])
-    temp <- Seurat::as.Seurat(temp.data)
-    temp[["RNA"]] <- temp[["spliced"]]
-    temp[["percent.mt"]] <- Seurat::PercentageFeatureSet(temp, pattern = "^MT-")
-    temp@meta.data[, "condition"] <- stringr::str_replace(names[x], ".loom", "")
-    condition <- stringr::str_replace(names[x], ".loom", "")
-    # assign(condition, temp)
-    list <- c(list, temp)
-    cell.ids <<- c(cell.ids, condition)
+  if (!read10x) {
+    for (x in 1:length(paths)) {
+      temp.data <- SeuratWrappers::ReadVelocity(file = paths[x])
+      temp <- Seurat::as.Seurat(temp.data)
+      temp[["RNA"]] <- temp[["spliced"]]
+      temp[["percent.mt"]] <- Seurat::PercentageFeatureSet(temp, pattern = "^MT-")
+      temp@meta.data[, "condition"] <- stringr::str_replace(names[x], ".loom", "")
+      condition <- stringr::str_replace(names[x], ".loom", "")
+      # assign(condition, temp)
+      list <- c(list, temp)
+      cell.ids <<- c(cell.ids, condition)
+    }
+  }
+  else {
+    for (x in 1:length(paths)){
+      temp.data <- Seurat::Read10X(data.dir = paths[x])
+      temp <- Seurat::CreateSeuratObject(temp.data)
+      temp[["percent.mt"]] <- Seurat::PercentageFeatureSet(temp, patten = "^MT-")
+      temp@meta.data[,"condition"] <- names[x]
+      list <- c(list, temp)
+      cell.ids <<- c(cell.ids, condition)
+    }
   }
   for (i in seq_along(list)) {
     list[[i]] <- Seurat::SCTransform(list[[i]], verbose = TRUE)
@@ -256,18 +284,23 @@ ui <- fluidPage(titlePanel(windowTitle = "Stallings Lab Single-Cell RNA Seq Anal
     shiny::fluidRow(sidebarLayout(
       sidebarPanel(
         tabsetPanel(
-          tabPanel("Load Data", shiny::fileInput(
+          tabPanel("Load Loom", shiny::fileInput(
             inputId = "rawcounts",
             label = "Count Matrix",
             multiple = TRUE
-          )),
+          ), shiny::actionButton("loadloom", 'Load')),
+          tabPanel(
+            "Load 10x",
+            shinyFiles::shinyDirButton('testdir', 'Input directory', "upload"),
+            shiny::actionButton("load10x", "Load")
+          ),
           tabPanel(
             "Load Model",
             shiny::fileInput(
               inputId = "model",
               label = "Pre-load model"
             ),
-            shiny::actionButton("loadmodel", "Load")
+            shiny::actionButton("loadmodel", "Load"),
           )
         )
       ),
@@ -487,18 +520,31 @@ server <- function(input, output) {
 
   sobj <- reactiveValues(obj = NULL, tag = "raw")
 
+  ftype <- reactiveValues(read10x = NULL)
+
   observeEvent(input$loadmodel, {
     req(input$model)
     sobj$obj <- readRDS(input$model$datapath)
   })
 
+  observeEvent(input$loadloom, {
+    ftype$read10x <- FALSE
+  })
+
+  observeEvent(input$load10x, {
+    ftype$read10x <- TRUE
+  })
+
   observe({
-    req(input$mergetype, input$rawcounts)
+    req(input$mergetype, !(is.null(ftype$read10x)))
     if (!is.null(sobj$obj)) {
     } else if (input$mergetype == "Simple Merge") {
-      sobj$obj <- renew_merged(raw_inputs()$name, raw_inputs()$datapath)
+      print(ftype$read10x)
+        if (ftype$read10x) {sobj$obj <- renew_merged(names(), subdirs(), read10x = TRUE)}
+        else {sobj$obj <- renew_merged(raw_inputs()$name, raw_inputs()$datapath, read10x = FALSE)}
     } else if (input$mergetype == "Integrate") {
-      sobj$obj <- renew_integrated(raw_inputs()$name, raw_inputs()$datapath)
+      if (ftype$read10x) {sobj$obj <- renew_integrated(names(), subdirs(), read10x = TRUE)}
+      else {sobj$obj <- renew_integrated(raw_inputs()$name, raw_inputs()$datapath, read10x = FALSE)}
     }
 
     sobj$tag <- "merged"
@@ -875,6 +921,21 @@ server <- function(input, output) {
       ggplot2::ggsave(file, plot = graph(), width = input$gwidth, height = input$gheight, units = input$gunits, scale = input$gscale)
     }
   )
+  volumes <- shinyFiles::getVolumes()
+  shinyFiles::shinyDirChoose(
+    input,
+    'testdir',
+    roots = c(home = '~')
+  )
+  dirname <- reactive({shinyFiles::parseDirPath(c(home='~'), input$testdir)})
+  subdirs <- reactive({list.dirs(dirname(), recursive = FALSE)})
+  names <- reactive ({list.dirs(dirname(), full.names = FALSE, recursive = FALSE)})
+  observe({
+    if(!is.null(dirname)){
+      print(dirname())
+      print(subdirs())
+    }
+  })
 }
 
 # Run the application
