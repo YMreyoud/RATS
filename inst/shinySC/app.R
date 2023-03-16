@@ -24,7 +24,7 @@
 # library(ggrepel)
 # library(msigdbr)
 # library(shinythemes)
-# library(enrichR)
+library(enrichR)
 
 
 `%>%` <- magrittr::`%>%`
@@ -40,10 +40,14 @@ mito.genes <- c(as.character(mouse_mito$Symbol), as.character(human_mito$Symbol)
 
 
 renew_merged <- function(names, paths, read10x) {
+  progress <- shiny::Progress$new(max = (2*length(paths)+7), min = 0)
+  on.exit(progress$close())
+  progress$set(message= "Merging data...", value = 0)
   list <- list()
   cell.ids <<- list()
   if (!read10x) {
     for (x in 1:length(paths)) {
+      progress$inc(1, detail = paste("Reading file: ", name[x]))
       temp.data <- SeuratWrappers::ReadVelocity(file = paths[x])
       temp <- Seurat::as.Seurat(temp.data)
       temp[["RNA"]] <- temp[["spliced"]]
@@ -59,6 +63,7 @@ renew_merged <- function(names, paths, read10x) {
   }
   else {
     for (x in 1:length(paths)) {
+      progress$inc(1, detail = paste("Reading file: ", names[x]))
       temp.data <- Seurat::Read10X(data.dir = paths[x])
       temp <- Seurat::CreateSeuratObject(temp.data)
       temp.mito <- mito.genes[mito.genes %in% rownames(temp)]
@@ -72,6 +77,7 @@ renew_merged <- function(names, paths, read10x) {
     }
   }
   for (i in seq_along(list)) {
+    progress$inc(1, detail = paste("Normalizing data for datset ", i, ' of ', length(list)))
     list[[i]] <- Seurat::NormalizeData(list[[i]], verbose = FALSE)
     list[[i]] <- Seurat::FindVariableFeatures(
       list[[i]],
@@ -85,18 +91,24 @@ renew_merged <- function(names, paths, read10x) {
   # add.cell.ids = cell.ids,
   # project = 'merged',
   # merge.data = TRUE)
-
+  progress$inc(1, detail = 'Finding anchors...')
   anchors <- Seurat::FindIntegrationAnchors(object.list = list, dims = 1:30)
+  progress$inc(1, detail = 'Merging data...')
   integrated <- Seurat::IntegrateData(anchorset = anchors, dims = 1:30)
   merged <- integrated
   # Run the standard workflow for visualization and clustering
   Seurat::DefaultAssay(merged) <- "integrated"
+  progress$inc(1, detail = 'Scaling data...')
   merged <- Seurat::ScaleData(merged)
+  progress$inc(1, detail = 'Running PCA...')
   merged <- Seurat::RunPCA(merged, npcs = 30, verbose = FALSE)
+  progress$inc(1, detail = 'Running UMAP...')
   merged <- Seurat::RunUMAP(merged, reduction = "pca", dims = 1:30)
+  progress$inc(1, detail = 'Finding Clusters...')
   merged <- Seurat::FindNeighbors(merged, reduction = "pca", dims = 1:30)
   merged <- Seurat::FindClusters(merged, resolution = 0.5)
   Seurat::DefaultAssay(merged) <- "RNA"
+  progress$inc(1, detail = 'Finishing up...')
   merged <- Seurat::SCTransform(merged, verbose = FALSE)
   merged <- Seurat::RunPCA(merged, npcs = 30, verbose = FALSE)
   merged <- Seurat::RunUMAP(merged, reduction = "pca", dims = 1:30)
@@ -106,12 +118,14 @@ renew_merged <- function(names, paths, read10x) {
 }
 
 renew_integrated <- function(names, paths, read10x) {
-  print(names)
-  print(paths)
+  progress <- shiny::Progress$new(max = (2*length(paths)+7), min = 0)
+  on.exit(progress$close())
+  progress$set(message= "Integrating data...", value = 0)
   list <- list()
   cell.ids <<- list()
   if (!read10x) {
     for (x in 1:length(paths)) {
+      progress$inc(1, detail = paste("Reading file: ", name[x]))
       temp.data <- SeuratWrappers::ReadVelocity(file = paths[x])
       temp <- Seurat::as.Seurat(temp.data)
       temp[["RNA"]] <- temp[["spliced"]]
@@ -125,6 +139,7 @@ renew_integrated <- function(names, paths, read10x) {
   }
   else {
     for (x in 1:length(paths)){
+      progress$inc(1, detail = paste("Reading file: ", name[x]))
       temp.data <- Seurat::Read10X(data.dir = paths[x])
       temp <- Seurat::CreateSeuratObject(temp.data)
       temp[["percent.mt"]] <- Seurat::PercentageFeatureSet(temp, patten = "^MT-")
@@ -134,21 +149,28 @@ renew_integrated <- function(names, paths, read10x) {
     }
   }
   for (i in seq_along(list)) {
+    progress$inc(1, detail = paste("Normalizing data for datset ", i, ' of ', length(list)))
     list[[i]] <- Seurat::SCTransform(list[[i]], verbose = TRUE)
   } # vst = variance stabilizing transformation
+  progress$inc(1, detail = 'Selecting integration features...')
   features <- Seurat::SelectIntegrationFeatures(list, nfeatures = 5000)
+  progress$inc(1, detail = 'Preparing integration...')
   list <- Seurat::PrepSCTIntegration(list, anchor.features = features)
   # integrated <- merge(list[[1]], list[-1],
   # add.cell.ids = cell.ids,
   # project = 'integrated',
   # merge.data = TRUE)
-
+  progress$inc(1, detail = 'Finding integration anchors...')
   anchors <- Seurat::FindIntegrationAnchors(object.list = list, dims = 1:30, normalization.method = "SCT", anchor.features = features)
+  progress$inc(1, detail = 'Integrating data...')
   integrated <- Seurat::IntegrateData(anchorset = anchors, dims = 1:30, normalization.method = "SCT")
   # Run the standard workflow for visualization and clustering
   Seurat::DefaultAssay(integrated) <- "integrated"
+  progress$inc(1, detail = 'Running PCA...')
   integrated <- Seurat::RunPCA(integrated, npcs = 30, verbose = TRUE)
+  progress$inc(1, detail = 'Running UMAP...')
   integrated <- Seurat::RunUMAP(integrated, reduction = "pca", dims = 1:30)
+  progress$inc(1, detail = 'Clustering...')
   integrated <- Seurat::FindNeighbors(integrated, reduction = "pca", dims = 1:30)
   integrated <- Seurat::FindClusters(integrated, resolution = 0.5)
   # saveRDS(integrated, "files/integrated.rds")
@@ -157,8 +179,16 @@ renew_integrated <- function(names, paths, read10x) {
 }
 
 qc <- function(seuratobject, featuremin = 500, featuremax = 6500, countmin = 1000, countmax = 7.5e4, percentmt = 5, res = 0.5) {
+
+  progress <- shiny::Progress$new(max = 6, min = 0)
+  on.exit(progress$close())
+  progress$set(message= "Performing QC...", value = 0)
+
   # This removes cells that don't meet our filtering criteria. Upper bound filters out doublets, lower bound filters out empty bubbles
   print(c(featuremin, featuremax, countmin, countmax, percentmt))
+
+  progress$inc(1, detail = 'Filtering cells...')
+
   seuratobject <- seuratobject %>%
     subset(nFeature_RNA > featuremin & nCount_RNA > countmin &
       percent.mt < percentmt & nFeature_RNA < featuremax & nCount_RNA < countmax)
@@ -174,9 +204,13 @@ qc <- function(seuratobject, featuremin = 500, featuremax = 6500, countmin = 100
   # seuratobject <- AddModuleScore(seuratobject, name = "apop_score", assay = "SCT", features = list(death_gene_sets), search = TRUE)
 
   # Rerun PCA and UMAP as well as clustering
+  progress$inc(1, detail = 'Re-scaling data...')
   seuratobject <- Seurat::SCTransform(seuratobject, verbose = TRUE)
+  progress$inc(1, detail = 'Running PCA...')
   seuratobject <- Seurat::RunPCA(seuratobject, features = Seurat::VariableFeatures(seuratobject))
+  progress$inc(1, detail = 'Running UMAP...')
   seuratobject <- Seurat::RunUMAP(seuratobject, reduction = "pca", dims = 1:30)
+  progress$inc(1, detail = 'Reclustering...')
   seuratobject <- Seurat::FindNeighbors(seuratobject, reduction = "pca", dims = 1:30)
   seuratobject <- Seurat::FindClusters(seuratobject, resolution = res)
   return(seuratobject)
@@ -186,16 +220,22 @@ qc <- function(seuratobject, featuremin = 500, featuremax = 6500, countmin = 100
 renew_labels <- function(seuratobject, reference) {
   # ref_se <- readRDS('ref_se_020222.rds') # imports mouse immune cell genesets for SingleR
 
+
+  progress <- shiny::Progress$new(max = 4, min = 0)
+  on.exit(progress$close())
+  progress$set(message= "Labeling cells...", value = 0)
+
+
   counts <- Seurat::GetAssayData(seuratobject)
-  print("Annotating Main Labels...")
+  progress$inc(1, detail = 'Annotating main labels...')
   cell_annotation <- SingleR::SingleR(counts, ref = reference, assay.type.test = 1, labels = reference$label.main) # performs annotation
-  print("Finished Main Annotation...")
+  progress$inc(1, detail = 'Finished main annotation...')
   seuratobject <- Seurat::AddMetaData(object = seuratobject, metadata = data.frame(cell_annotation)) # adds metadata of new annotations
 
-  print("Annotating Fine Labels...")
+  progress$inc(1, detail = 'Annotating fine labels...')
   cell_annotation <- SingleR::SingleR(counts, ref = reference, assay.type.test = 1, labels = reference$label.fine)
   names(cell_annotation) <- BiocGenerics::paste(names(cell_annotation), "_fine", sep = "")
-  print("Finished Fine Annotation...")
+  progress$inc(1, detail = 'Finished fine annotation...')
   seuratobject <- Seurat::AddMetaData(object = seuratobject, metadata = data.frame(cell_annotation)) # adds metadata of new annotations
   seuratobject <- Seurat::SetIdent(seuratobject, value = seuratobject@meta.data$labels) # sets default method to labels
 
@@ -203,15 +243,23 @@ renew_labels <- function(seuratobject, reference) {
 }
 
 relabel <- function(seuratobject, new_ids) {
+  progress <- shiny::Progress$new(max = 1, min = 0)
+  on.exit(progress$close())
+  progress$set(message= "Relabeling...", value = 0)
   Seurat::Idents(seuratobject) <- seuratobject$seurat_clusters
   seuratobject <- Seurat::RenameIdents(seuratobject, new_ids)
   seuratobject$cell_type <- Seurat::Idents(seuratobject)
   seuratobject$celltype.condition <- BiocGenerics::paste(Seurat::Idents(seuratobject), seuratobject$condition, sep = "_")
+  progress$set(message= "Done!", value = 1)
   return(seuratobject)
 }
 
 getexp <- function(seuratobject, idents, id1, id2) {
+  progress <- shiny::Progress$new(max = 1, min = 0)
+  on.exit(progress$close())
+  progress$set(message= "Calculating diff. exp. table...", value = 0)
   DET <- Seurat::FindMarkers(seuratobject, group.by = idents, ident.1 = id1, ident.2 = id2, min.pct = 0.25, logfc.threshold = 0.5)
+  progress$set(message= "Done!", value = 1)
   return(DET)
 }
 
@@ -276,7 +324,7 @@ graph_params <- function(graph_type, object) {
 #  }
 #  tags
 # })
-
+options(spinner.image = 'ratdance.gif', spinner.image.height = 100)
 options(shiny.maxRequestSize = 100 * 1024^3)
 # Define UI for application that draws a histogram
 # tags$script(HTML("var header = $('.navbar > .container-fluid'); header.append('<div style=\"float:right\"><a href=\"URL\"><img src=\"logo.png\" alt=\"alt\" style=\"float:right;width:33px;height:41px;padding-top:10px;\"> </a></div>'); console.log(header)"))
@@ -328,7 +376,7 @@ ui <- fluidPage(titlePanel(windowTitle = "Stallings Lab Single-Cell RNA Seq Anal
       ),
       mainPanel(tabsetPanel(tabPanel(
         "Data",
-        plotOutput("histcounts"),
+        plotOutput("histcounts") %>% shinycssloaders::withSpinner(),
         plotOutput("histfeatures"),
         plotOutput("histmito"),
         plotOutput("violin"),
@@ -350,7 +398,7 @@ ui <- fluidPage(titlePanel(windowTitle = "Stallings Lab Single-Cell RNA Seq Anal
       ),
       mainPanel(tabsetPanel(tabPanel(
         "QC'd Clustering",
-        plotOutput("Dimplotqc"),
+        plotOutput("Dimplotqc") %>% shinycssloaders::withSpinner(),
         downloadButton("downloadSeur", "Download Seurat Object")
       )))
     ))
@@ -371,7 +419,7 @@ ui <- fluidPage(titlePanel(windowTitle = "Stallings Lab Single-Cell RNA Seq Anal
       mainPanel(tabsetPanel(
         tabPanel(
           "Interactive Feature Plot",
-          plotOutput("interactiveFeature")
+          plotOutput("interactiveFeature") %>% shinycssloaders::withSpinner()
         ),
         tabPanel(
           "SingleR Labels Main",
@@ -393,12 +441,12 @@ ui <- fluidPage(titlePanel(windowTitle = "Stallings Lab Single-Cell RNA Seq Anal
       mainPanel(tabsetPanel(
         tabPanel(
           "singler_dimplot",
-          plotOutput("SingleRDimPlot"),
+          plotOutput("SingleRDimPlot") %>% shinycssloaders::withSpinner(),
           plotOutput("SClusters")
         ),
         tabPanel(
           "DimPlot",
-          plotOutput("Dimplotlabelled")
+          plotOutput("Dimplotlabelled") %>% shinycssloaders::withSpinner()
         )
       ))
     ))
@@ -420,7 +468,7 @@ ui <- fluidPage(titlePanel(windowTitle = "Stallings Lab Single-Cell RNA Seq Anal
       mainPanel(tabsetPanel(
         tabPanel(
           "DE table",
-          DT::dataTableOutput("diffexp"),
+          DT::dataTableOutput("diffexp") %>% shinycssloaders::withSpinner(),
           downloadButton("downloaddiffexp", "Download Differential Expression Table")
         ),
         tabPanel(
@@ -442,11 +490,11 @@ ui <- fluidPage(titlePanel(windowTitle = "Stallings Lab Single-Cell RNA Seq Anal
       mainPanel(tabsetPanel(
         tabPanel(
           "Total",
-          plotOutput("ccdimplot")
+          plotOutput("ccdimplot") %>% shinycssloaders::withSpinner()
         ),
         tabPanel(
           "By Condition",
-          plotOutput("ccdimplotsplit")
+          plotOutput("ccdimplotsplit") %>% shinycssloaders::withSpinner()
         )
       ))
     ))
@@ -473,7 +521,7 @@ ui <- fluidPage(titlePanel(windowTitle = "Stallings Lab Single-Cell RNA Seq Anal
         ),
         tabPanel(
           "Module Graph",
-          plotOutput("modfplot") # ,
+          plotOutput("modfplot") %>% shinycssloaders::withSpinner() # ,
           # downloadButton('downloadFplot', 'Download Plot')
         )
       ))
@@ -498,7 +546,7 @@ ui <- fluidPage(titlePanel(windowTitle = "Stallings Lab Single-Cell RNA Seq Anal
         )
       )),
       mainPanel(
-        plotOutput("graph"),
+        plotOutput("graph") %>% shinycssloaders::withSpinner(),
         downloadButton("downloadgraph", "Download")
       )
     ))
@@ -551,34 +599,42 @@ server <- function(input, output) {
 
     sobj$tag <- "merged"
     output$violin <- renderPlot({
+      req(input$mergetype)
       Seurat::VlnPlot(sobj$obj, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
     })
 
     output$histfeatures <- renderPlot({
+      req(input$mergetype)
       hist(sobj$obj$nCount_RNA)
     })
 
     output$histmito <- renderPlot({
+      req(input$mergetype)
       hist(sobj$obj$nFeature_RNA)
     })
 
     output$histcounts <- renderPlot({
+      req(input$mergetype)
       hist(sobj$obj$percent.mt)
     })
 
     output$featurescattermt <- renderPlot({
+      req(input$mergetype)
       Seurat::FeatureScatter(sobj$obj, feature1 = "nCount_RNA", feature2 = "percent.mt")
     })
 
     output$featurescatterfeatures <- renderPlot({
+      req(input$mergetype)
       Seurat::FeatureScatter(sobj$obj, feature1 = "nCount_RNA", feature2 = "nFeature_RNA")
     })
 
     output$Elbow <- renderPlot({
+      req(input$mergetype)
       Seurat::ElbowPlot(sobj$obj, ndims = 40, reduction = "pca")
     })
 
     output$Dimplot <- renderPlot({
+      req(input$mergetype)
       Seurat::DimPlot(sobj$obj, group.by = "condition")
     })
   })
@@ -600,6 +656,7 @@ server <- function(input, output) {
       sobj$obj <- qc(sobj$obj, featuremin = input$nfeatures[1], featuremax = input$nfeatures[2], countmin = input$ncounts[1], countmax = input$ncounts[2], percentmt = input$percentmt, res = input$res)
     }
     output$Dimplotqc <- renderPlot({
+      req(input$runqc)
       Seurat::DimPlot(sobj$obj, group.by = "seurat_clusters")
     })
     sobj$tag <- "qc"
@@ -665,6 +722,7 @@ server <- function(input, output) {
     names(x = ids) <- levels(x = sobj$obj$seurat_clusters)
     sobj$obj <- relabel(sobj$obj, ids)
     output$Dimplotlabelled <- renderPlot({
+      req(input$relabel)
       Seurat::DimPlot(sobj$obj, label = TRUE, repel = TRUE)
     })
 
@@ -780,13 +838,16 @@ server <- function(input, output) {
 
   posenrichment <- reactive({
     req(input$enrich)
+    progress <- shiny::Progress$new(max = 1, min = 0)
+    on.exit(progress$close())
+    progress$set(message= "Positive Enrichment...", value = 1)
     enrichR::enrichr(BiocGenerics::rownames(pos()), databases = input$dbs)
   })
 
   output$penrichplots <- renderUI({
     plot_output_list <- BiocGenerics::lapply(1:length(input$dbs), function(i) {
       plotname <- BiocGenerics::paste("pplot", i, sep = "")
-      plotOutput(plotname)
+      plotOutput(plotname) %>% shinycssloaders::withSpinner()
     })
     BiocGenerics::do.call(tagList, plot_output_list)
   })
@@ -805,13 +866,16 @@ server <- function(input, output) {
   })
   negenrichment <- reactive({
     req(input$enrich)
+    progress <- shiny::Progress$new(max = 1, min = 0)
+    on.exit(progress$close())
+    progress$set(message= "Negative Enrichment...", value = 1)
     enrichR::enrichr(BiocGenerics::rownames(neg()), databases = input$dbs)
   })
 
   output$nenrichplots <- renderUI({
     plot_output_list <- BiocGenerics::lapply(1:length(input$dbs), function(i) {
       plotname <- BiocGenerics::paste("nplot", i, sep = "")
-      plotOutput(plotname)
+      plotOutput(plotname) %>% shinycssloaders::withSpinner()
     })
     BiocGenerics::do.call(tagList, plot_output_list)
   })
@@ -831,7 +895,11 @@ server <- function(input, output) {
 
   observeEvent(input$ccscore, {
     req(sobj$obj)
+    progress <- shiny::Progress$new(max = 1, min = 0)
+    on.exit(progress$close())
+    progress$set(message= "Running Cell Cycle Scoring...", value = 0)
     sobj$obj <- Seurat::CellCycleScoring(object = sobj$obj, s.features = Seurat::cc.genes$s.genes, g2m.features = Seurat::cc.genes$g2m.genes)
+    progress$inc(1, message = "Done!")
   })
 
   output$ccdimplot <- renderPlot({
@@ -846,7 +914,9 @@ server <- function(input, output) {
 
   observeEvent(input$addmod, {
     req(input$geneset1, input$geneset2, input$modulename)
-    print("Calculating Module Scores...")
+    progress <- shiny::Progress$new(max = 1, min = 0)
+    on.exit(progress$close())
+    progress$set(message= "Calculating Scores...", value = 0)
     gset1 <- readr::read_csv(input$geneset1$datapath)$x
     gset2 <- readr::read_csv(input$geneset2$datapath)$x
     modname <- input$modulename
@@ -854,7 +924,7 @@ server <- function(input, output) {
     gset2 <- sobj$obj@assays[["SCT"]]@var.features[sobj$obj@assays[["SCT"]]@var.features %in% gset2]
     Module_features <- list("1" = gset1, "2" = gset2)
     sobj$obj <- Seurat::AddModuleScore(sobj$obj, name = modname, assay = DefaultAssay(sobj$obj), features = Module_features, search = TRUE)
-    print("Done.")
+    pprogress$inc(1, message = "Done!")
   })
 
   output$modfeature <- renderUI({
@@ -912,6 +982,7 @@ server <- function(input, output) {
     }
   })
   output$graph <- renderPlot({
+    req(input$graphbutton)
     graph()
   })
 

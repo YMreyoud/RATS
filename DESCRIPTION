@@ -41,4 +41,5 @@ Imports:
 Remotes:
   satijalab/seurat-wrappers,
   satijalab/seurat-data,
-  cran/Matrix
+  cran/Matrix,
+  daattali/shinycssloaders
