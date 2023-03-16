@@ -37,8 +37,8 @@ Imports:
   scales,
   msigdbr,
   shinythemes,
-  shinyFiles,
-  Matrix (== 1.5.3)
+  shinyFiles
 Remotes:
   satijalab/seurat-wrappers,
-  satijalab/seurat-data
+  satijalab/seurat-data,
+  cran/Matrix
