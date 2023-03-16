@@ -109,7 +109,7 @@ renew_merged <- function(names, paths, read10x) {
   merged <- Seurat::FindClusters(merged, resolution = 0.5)
   Seurat::DefaultAssay(merged) <- "RNA"
   progress$inc(1, detail = 'Finishing up...')
-  merged <- Seurat::SCTransform(merged, verbose = FALSE)
+  merged <- Seurat::SCTransform(merged, verbose = TRUE)
   merged <- Seurat::RunPCA(merged, npcs = 30, verbose = FALSE)
   merged <- Seurat::RunUMAP(merged, reduction = "pca", dims = 1:30)
   # saveRDS(merged, "files/merged.rds")
