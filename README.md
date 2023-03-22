@@ -1,4 +1,4 @@
-Comprehensive Analysis of RNA-seq Data (CARD)
+RNA-seq Analysis Tool Set (RATS)
 ================
 Yassin Mreyoud
 03-09-2023
