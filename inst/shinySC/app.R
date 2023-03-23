@@ -334,16 +334,16 @@ ui <- fluidPage(titlePanel(windowTitle = "Stallings Lab Single-Cell RNA Seq Anal
     shiny::fluidRow(sidebarLayout(
       sidebarPanel(
         tabsetPanel(
-          tabPanel("Load Loom", shiny::fileInput(
-            inputId = "rawcounts",
-            label = "Count Matrix",
-            multiple = TRUE
-          ), shiny::actionButton("loadloom", 'Load')),
           tabPanel(
             "Load 10x",
             shinyFiles::shinyDirButton('testdir', 'Input directory', "upload"),
             shiny::actionButton("load10x", "Load")
           ),
+          tabPanel("Load Loom", shiny::fileInput(
+            inputId = "rawcounts",
+            label = "Count Matrix",
+            multiple = TRUE
+          ), shiny::actionButton("loadloom", 'Load')),
           tabPanel(
             "Load Model",
             shiny::fileInput(
@@ -527,6 +527,18 @@ ui <- fluidPage(titlePanel(windowTitle = "Stallings Lab Single-Cell RNA Seq Anal
       ))
     ))
   ),
+  tabPanel("Subset",
+    fluidRow(sidebarLayout(
+      sidebarPanel(
+        uiOutput('subsetident'),
+        uiOutput('subsetfeatures'),
+        actionButton('runsubset', 'Subset')
+      ),
+      mainPanel(
+        plotOutput("subsetdimplot")
+      )
+    ))
+  ),
   tabPanel("Graph Generator",
     fluidRow(sidebarLayout(
       sidebarPanel(tabsetPanel(
@@ -574,7 +586,12 @@ server <- function(input, output) {
 
   observeEvent(input$loadmodel, {
     req(input$model)
+    progress <- shiny::Progress$new(max = 1, min = 0)
+    on.exit(progress$close())
+    progress$set(message= "Loading object...", value = 0)
     sobj$obj <- readRDS(input$model$datapath)
+    progress$inc(1, message= "Done!")
+    Sys.sleep(0.5)
   })
 
   observeEvent(input$loadloom, {
@@ -594,7 +611,8 @@ server <- function(input, output) {
         else {sobj$obj <- renew_merged(raw_inputs()$name, raw_inputs()$datapath, read10x = FALSE)}
     } else if (input$mergetype == "Integrate") {
       if (ftype$read10x) {sobj$obj <- renew_integrated(names(), subdirs(), read10x = TRUE)}
-      else {sobj$obj <- renew_integrated(raw_inputs()$name, raw_inputs()$datapath, read10x = FALSE)}
+      else {
+        sobj$obj <- renew_integrated(raw_inputs()$name, raw_inputs()$datapath, read10x = FALSE)}
     }
 
     sobj$tag <- "merged"
@@ -923,7 +941,7 @@ server <- function(input, output) {
     gset1 <- sobj$obj@assays[["SCT"]]@var.features[sobj$obj@assays[["SCT"]]@var.features %in% gset1]
     gset2 <- sobj$obj@assays[["SCT"]]@var.features[sobj$obj@assays[["SCT"]]@var.features %in% gset2]
     Module_features <- list("1" = gset1, "2" = gset2)
-    sobj$obj <- Seurat::AddModuleScore(sobj$obj, name = modname, assay = DefaultAssay(sobj$obj), features = Module_features, search = TRUE)
+    sobj$obj <- Seurat::AddModuleScore(sobj$obj, name = modname, assay = Seurat::DefaultAssay(sobj$obj), features = Module_features, search = TRUE)
     pprogress$inc(1, message = "Done!")
   })
 
@@ -952,6 +970,27 @@ server <- function(input, output) {
       ggplot2::ggsave(file, plot = fplot(), width = 45, height = 15, units = "in", scale = 0.5)
     }
   )
+
+
+  output$subsetident <- renderUI({
+    selectizeInput("subsetidents", "Select Ident to subset on", choices = identlist(), selected = NULL, options = list(maxItems = 1))
+  })
+
+  output$subsetfeatures <- renderUI({
+    selectizeInput("subsetvals", "Select which values to subset", choices = levels(as.factor(BiocGenerics::unique(sobj$obj@meta.data[input$subsetidents])[[input$subsetidents]])), selected = NULL, multiple = TRUE)
+  })
+
+  observeEvent(input$runsubset, {
+    print(input$subsetidents)
+    print(input$subsetvals)
+    progress <- shiny::Progress$new(max = 1, min = 0)
+    on.exit(progress$close())
+    progress$set(message= "Saving current object...", value = 0)
+    sobj$prev <- sobj$obj
+    progress$inc(1, message = "Subsetting object...")
+    Seurat::Idents(sobj$obj) <- sobj$obj[[input$subsetidents]]
+    sobj$obj <- subset(sobj$obj, idents = input$subsetvals)
+  })
 
   output$graphparams <- renderUI({
     req(input$graphtomake, sobj$obj)
