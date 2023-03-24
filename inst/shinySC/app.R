@@ -47,7 +47,7 @@ renew_merged <- function(names, paths, read10x) {
   cell.ids <<- list()
   if (!read10x) {
     for (x in 1:length(paths)) {
-      progress$inc(1, detail = paste("Reading file: ", name[x]))
+      progress$inc(1, detail = paste("Reading file: ", names[x]))
       temp.data <- SeuratWrappers::ReadVelocity(file = paths[x])
       temp <- Seurat::as.Seurat(temp.data)
       temp[["RNA"]] <- temp[["spliced"]]
@@ -125,7 +125,7 @@ renew_integrated <- function(names, paths, read10x) {
   cell.ids <<- list()
   if (!read10x) {
     for (x in 1:length(paths)) {
-      progress$inc(1, detail = paste("Reading file: ", name[x]))
+      progress$inc(1, detail = paste("Reading file: ", names[x]))
       temp.data <- SeuratWrappers::ReadVelocity(file = paths[x])
       temp <- Seurat::as.Seurat(temp.data)
       temp[["RNA"]] <- temp[["spliced"]]
@@ -139,11 +139,12 @@ renew_integrated <- function(names, paths, read10x) {
   }
   else {
     for (x in 1:length(paths)){
-      progress$inc(1, detail = paste("Reading file: ", name[x]))
+      progress$inc(1, detail = paste("Reading file: ", names[x]))
       temp.data <- Seurat::Read10X(data.dir = paths[x])
       temp <- Seurat::CreateSeuratObject(temp.data)
-      temp[["percent.mt"]] <- Seurat::PercentageFeatureSet(temp, patten = "^MT-")
+      temp[["percent.mt"]] <- Seurat::PercentageFeatureSet(temp, pattern = "^MT-")
       temp@meta.data[,"condition"] <- names[x]
+      condition <- names[x]
       list <- c(list, temp)
       cell.ids <<- c(cell.ids, condition)
     }
@@ -357,7 +358,8 @@ ui <- fluidPage(titlePanel(windowTitle = "Stallings Lab Single-Cell RNA Seq Anal
       mainPanel(type = "tab", tabsetPanel(
         tabPanel(
           "Data",
-          tableOutput("mdataTbl")
+          uiOutput('mdatatbl')
+          #tableOutput("mdataTbl")
         )
       ))
     ))
@@ -571,15 +573,28 @@ ui <- fluidPage(titlePanel(windowTitle = "Stallings Lab Single-Cell RNA Seq Anal
 # Define server logic required to draw a histogram
 server <- function(input, output) {
   raw_inputs <- reactive({
-    if (is.null(input$rawcounts)) {
+    if (is.null(input$rawcounts)&(input$testdir == 0)&is.null(input$model)) {
       return(NULL)
     }
-    return(input$rawcounts)
+    if (!(input$loadloom==0) | !(input$loadmodel==0)) {
+      return(input$rawcounts)
+    }
+    else if (!(input$load10x==0)) {
+      return(parseFilePaths(volumes, input$testdir))
+    }
   })
   output$mdataTbl <- renderTable({
     raw_inputs()
   })
-
+  output$mdatatbl <- renderUI({
+    if (input$load10x==1) {
+      output$testing <- renderText(subdirs())
+      textOutput("testing")
+    }
+    else if ((input$loadloom==1) | input$loadmodel==1){
+      renderTable({raw_inputs()})
+    }
+  })
   sobj <- reactiveValues(obj = NULL, tag = "raw")
 
   ftype <- reactiveValues(read10x = NULL)
@@ -1045,8 +1060,8 @@ server <- function(input, output) {
   names <- reactive ({list.dirs(dirname(), full.names = FALSE, recursive = FALSE)})
   observe({
     if(!is.null(dirname)){
-      print(dirname())
-      print(subdirs())
+      #print(dirname())
+      #print(subdirs())
     }
   })
 }
