@@ -39,9 +39,11 @@ Imports:
   shinythemes,
   shinyFiles,
   Matrix (>= 1.5.3),
-  shinycssloaders
+  shinycssloaders,
+  monocle3
 Remotes:
   satijalab/seurat-wrappers,
   satijalab/seurat-data,
   cran/Matrix,
-  daattali/shinycssloaders
+  daattali/shinycssloaders,
+  cole-trapnell-lab/monocle3

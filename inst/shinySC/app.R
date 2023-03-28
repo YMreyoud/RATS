@@ -27,6 +27,65 @@
 library(enrichR)
 
 
+read.loom.matrices <- function(file, engine='hdf5r') {
+  if (engine == 'h5'){
+    cat('reading loom file via h5...\n')
+    f <- h5::h5file(file,mode='r');
+    cells <- f["col_attrs/CellID"][];
+    genes <- f["row_attrs/Gene"][];
+    dl <- c(spliced="/layers/spliced",unspliced="/layers/unspliced",ambiguous="/layers/ambiguous");
+    if("/layers/spanning" %in% h5::list.datasets(f)) {
+      dl <- c(dl,c(spanning="/layers/spanning"))
+    }
+    dlist <- lapply(dl,function(path) {
+      m <- as(f[path][],'dgCMatrix'); rownames(m) <- genes; colnames(m) <- cells; return(m)
+    })
+    h5::h5close(f)
+    return(dlist)
+  } else if (engine == 'hdf5r') {
+    cat('reading loom file via hdf5r...\n')
+    f <- hdf5r::H5File$new(file, mode='r')
+    cells <- f[["col_attrs/CellID"]][]
+    genes <- f[["row_attrs/Gene"]][]
+    dl <- c(spliced="layers/spliced",
+            unspliced="layers/unspliced",
+            ambiguous="layers/ambiguous")
+    if("layers/spanning" %in% hdf5r::list.datasets(f)) {
+      dl <- c(dl, c(spanning="layers/spanning"))
+    }
+    dlist <- lapply(dl, function(path) {
+      m <- as(t(f[[path]][,]),'dgCMatrix')
+      rownames(m) <- genes; colnames(m) <- cells;
+      return(m)
+    })
+    f$close_all()
+    return(dlist)
+  }
+  else {
+    warning('Unknown engine. Use hdf5r or h5 to import loom file.')
+    return(list())
+  }
+}
+
+
+
+ReadVelocity <- function(file, engine = 'hdf5r', verbose = TRUE) {
+  #CheckPackage(package = 'velocyto-team/velocyto.R', repository = 'github')
+  if (verbose) {
+    sink(file = stderr(), type = 'output')
+    on.exit(expr = sink())
+    ldat <- read.loom.matrices(file = file, engine = engine)
+  } else {
+    invisible(x = capture.output(ldat <- vread.loom.matrices(
+      file = file,
+      engine = engine
+    )))
+  }
+  return(ldat)
+}
+
+
+
 `%>%` <- magrittr::`%>%`
 mouse_mito <- readr::read_csv(file = "Mouse.MitoCarta3.0.csv") %>% # Import list of mouse mitochondrial genes
   dplyr::select(c(Symbol, MitoCarta2.0_Score)) %>%
@@ -48,7 +107,7 @@ renew_merged <- function(names, paths, read10x) {
   if (!read10x) {
     for (x in 1:length(paths)) {
       progress$inc(1, detail = paste("Reading file: ", names[x]))
-      temp.data <- SeuratWrappers::ReadVelocity(file = paths[x])
+      temp.data <- ReadVelocity(file = paths[x])
       temp <- Seurat::as.Seurat(temp.data)
       temp[["RNA"]] <- temp[["spliced"]]
       temp.mito <- mito.genes[mito.genes %in% rownames(temp)]
@@ -126,7 +185,7 @@ renew_integrated <- function(names, paths, read10x) {
   if (!read10x) {
     for (x in 1:length(paths)) {
       progress$inc(1, detail = paste("Reading file: ", names[x]))
-      temp.data <- SeuratWrappers::ReadVelocity(file = paths[x])
+      temp.data <- ReadVelocity(file = paths[x])
       temp <- Seurat::as.Seurat(temp.data)
       temp[["RNA"]] <- temp[["spliced"]]
       temp[["percent.mt"]] <- Seurat::PercentageFeatureSet(temp, pattern = "^MT-")
@@ -262,6 +321,23 @@ getexp <- function(seuratobject, idents, id1, id2) {
   DET <- Seurat::FindMarkers(seuratobject, group.by = idents, ident.1 = id1, ident.2 = id2, min.pct = 0.25, logfc.threshold = 0.5)
   progress$set(message= "Done!", value = 1)
   return(DET)
+}
+
+run_pseudo <- function(seuratobject, root) {
+  progress <- shiny::Progress$new(max = 6, min = 0)
+  on.exit(progress$close())
+  progress$set(message = "Running Pseudotime Analysis...", value = 0, detail = "Converting to cds...")
+  cds <- SeuratWrappers::as.cell_data_set(seuratobject)
+  progress$inc(1, detail = "Clustering...")
+  cds <- monocle3::cluster_cells(cds)
+  progress$inc(1, detail = "Learning graph...")
+  cds <- monocle3::learn_graph(cds)
+  progress$inc(1, detail = "Finding root...")
+  max <- BiocGenerics::which.max(BiocGenerics::unlist(SeuratObject::FetchData(seuratobject, root)))
+  max <- BiocGenerics::colnames(seuratobject)[max]
+  progress$inc(1, detail = "Finishing up...")
+  cds <- monocle3::order_cells(cds, root_cells = max)
+  return(cds)
 }
 
 graph_params <- function(graph_type, object) {
@@ -541,6 +617,18 @@ ui <- fluidPage(titlePanel(windowTitle = "Stallings Lab Single-Cell RNA Seq Anal
       )
     ))
   ),
+  tabPanel("Pseudotime",
+    fluidRow(sidebarLayout(
+      sidebarPanel(
+        uiOutput('pseudoroot'),
+        actionButton('runpseudo', 'Run Psuedotime')
+      ),
+      mainPanel(
+        plotOutput('pseudoplot'),
+        downloadButton("downloadpseudo", "Download")
+      )
+    ))
+  ),
   tabPanel("Graph Generator",
     fluidRow(sidebarLayout(
       sidebarPanel(tabsetPanel(
@@ -576,10 +664,10 @@ server <- function(input, output) {
     if (is.null(input$rawcounts)&(input$testdir == 0)&is.null(input$model)) {
       return(NULL)
     }
-    if (!(input$loadloom==0) | !(input$loadmodel==0)) {
+    else if (!(is.null(input$rawcounts)) | !(is.null(input$model))) {
       return(input$rawcounts)
     }
-    else if (!(input$load10x==0)) {
+    else if (!(input$testdir==0)) {
       return(parseFilePaths(volumes, input$testdir))
     }
   })
@@ -587,12 +675,13 @@ server <- function(input, output) {
     raw_inputs()
   })
   output$mdatatbl <- renderUI({
-    if (input$load10x==1) {
+    if (input$load10x == 1) {
       output$testing <- renderText(subdirs())
       textOutput("testing")
     }
-    else if ((input$loadloom==1) | input$loadmodel==1){
-      renderTable({raw_inputs()})
+    else if (!(is.null(input$rawcounts)) | !(is.null(input$model))){
+      output$loomin <- renderTable({raw_inputs()})
+      tableOutput('loomin')
     }
   })
   sobj <- reactiveValues(obj = NULL, tag = "raw")
@@ -1007,6 +1096,17 @@ server <- function(input, output) {
     sobj$obj <- subset(sobj$obj, idents = input$subsetvals)
   })
 
+  output$pseudoroot <- renderUI({
+    selectInput('pseudogene', label = 'Select gene to use as root.', choices = featurelist(), multiple = FALSE)
+  })
+
+  pplot <- eventReactive(input$runpseudo, {
+    cds <- run_pseudo(sobj$obj, input$pseudogene)
+    pseudo <- renderPlot(monocle3::plot_cells(cds, color_cells_by = 'pseudotime', label_cell_groups = FALSE, label_leaves = FALSE, label_branch_points = FALSE) + ggplot2::ggtitle(paste("Pseudotime map with max ",input$pseudogene, "expression as root")))
+    output$pseudoplot <- pseudo
+    return(pseudo)
+  })
+
   output$graphparams <- renderUI({
     req(input$graphtomake, sobj$obj)
     params <- graph_params(input$graphtomake, sobj$obj)
@@ -1048,6 +1148,16 @@ server <- function(input, output) {
       ggplot2::ggsave(file, plot = graph(), width = input$gwidth, height = input$gheight, units = input$gunits, scale = input$gscale)
     }
   )
+
+  output$downloadpseudo <- downloadHandler(
+    filename = function() {
+      BiocGenerics::paste("Pseudotime.svg")
+    },
+    content = function(files) {
+      ggplot2ggsave(file, plot = pplot())
+    }
+  )
+
   volumes <- shinyFiles::getVolumes()()
   shinyFiles::shinyDirChoose(
     input,

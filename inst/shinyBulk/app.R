@@ -344,7 +344,7 @@ server <- function(input, output) {
         print(is.null(input$ggenes))
         if (is.null(input$ggeneset) & is.null(input$ggenes)){
           volc = ggplot2::ggplot(volc_in[2:length(volc_in$gene),], ggplot2::aes(logFC, -log10(P.Value))) +
-            ggplot2::geom_point(aes(col=sig)) +
+            ggplot2::geom_point(ggplot2::aes(col=sig)) +
             ggplot2::scale_color_manual(values = c('Sig' = "red",  'Not Sig' = 'black')) +
             ggplot2::ggtitle(input$gcontrast)
           volc
