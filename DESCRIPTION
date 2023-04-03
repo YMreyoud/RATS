@@ -40,8 +40,10 @@ Imports:
   shinyFiles,
   Matrix (>= 1.5.3),
   shinycssloaders,
+  speedglm,
   monocle3
 Remotes:
+  cran/speedglm,
   satijalab/seurat-wrappers,
   satijalab/seurat-data,
   cran/Matrix,
