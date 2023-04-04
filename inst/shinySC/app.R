@@ -324,6 +324,27 @@ getexp <- function(seuratobject, idents, id1, id2) {
   return(DET)
 }
 
+
+refine_metadata_levels <- function(seurat_data){
+  for (i in base::colnames(seurat_data@meta.data)){
+    if (base::is.factor(seurat_data@meta.data[[i]])){
+      base::print(base::paste("Re-evaluating levels for a factor column", i))
+      base::print(
+        base::paste(
+          "before:", base::paste(base::levels(seurat_data@meta.data[[i]]), collapse=", ")
+        )
+      )
+      seurat_data@meta.data[[i]] <- base::droplevels(seurat_data@meta.data[[i]])  # need to drop levels of the removed values
+      base::print(
+        base::paste(
+          "after:", base::paste(base::levels(seurat_data@meta.data[[i]]), collapse=", ")
+        )
+      )
+    }
+  }
+  return (seurat_data)
+}
+
 run_pseudo <- function(seuratobject, root) {
   progress <- shiny::Progress$new(max = 6, min = 0)
   on.exit(progress$close())
@@ -1095,6 +1116,7 @@ server <- function(input, output) {
     progress$inc(1, message = "Subsetting object...")
     Seurat::Idents(sobj$obj) <- sobj$obj[[input$subsetidents]]
     sobj$obj <- subset(sobj$obj, idents = input$subsetvals)
+    sobj$obj <- refine_metadata_levels(sobj$obj)
   })
 
   output$pseudoroot <- renderUI({
