@@ -622,10 +622,10 @@ ui <- fluidPage(titlePanel(windowTitle = "Stallings Lab Single-Cell RNA Seq Anal
     fluidRow(sidebarLayout(
       sidebarPanel(
         uiOutput('pseudoroot'),
-        actionButton('runpseudo', 'Run Psuedotime')
+        actionButton('runpseudo', 'Run Pseudotime')
       ),
       mainPanel(
-        plotOutput('pseudoplot'),
+        plotOutput('pseudoplot') %>% shinycssloaders::withSpinner(),
         downloadButton("downloadpseudo", "Download")
       )
     ))
@@ -1102,11 +1102,12 @@ server <- function(input, output) {
   })
 
   pplot <- eventReactive(input$runpseudo, {
+    print('Running pseudo')
     cds <- run_pseudo(sobj$obj, input$pseudogene)
-    pseudo <- renderPlot(monocle3::plot_cells(cds, color_cells_by = 'pseudotime', label_cell_groups = FALSE, label_leaves = FALSE, label_branch_points = FALSE) + ggplot2::ggtitle(paste("Pseudotime map with max ",input$pseudogene, "expression as root")))
-    output$pseudoplot <- pseudo
-    return(pseudo)
+    monocle3::plot_cells(cds, color_cells_by = 'pseudotime', label_cell_groups = FALSE, label_leaves = FALSE, label_branch_points = FALSE) + ggplot2::ggtitle(paste("Pseudotime map with max ",input$pseudogene, "expression as root"))
   })
+
+  output$pseudoplot <- renderPlot({pplot()})
 
   output$graphparams <- renderUI({
     req(input$graphtomake, sobj$obj)
@@ -1114,6 +1115,12 @@ server <- function(input, output) {
     params
   })
 
+  output$downloadpseudo <- downloadHandler(
+    filename = "Pseudotime.svg",
+    content = function(file) {
+      ggplot2::ggsave(file, plot = pplot())
+    }
+  )
 
   graph <- eventReactive(input$graphbutton, {
     req(sobj$obj, input$graphtomake)
@@ -1147,15 +1154,6 @@ server <- function(input, output) {
     },
     content = function(file) {
       ggplot2::ggsave(file, plot = graph(), width = input$gwidth, height = input$gheight, units = input$gunits, scale = input$gscale)
-    }
-  )
-
-  output$downloadpseudo <- downloadHandler(
-    filename = function() {
-      BiocGenerics::paste("Pseudotime.svg")
-    },
-    content = function(files) {
-      ggplot2ggsave(file, plot = pplot())
     }
   )
 
