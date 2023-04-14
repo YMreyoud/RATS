@@ -352,7 +352,7 @@ server <- function(input, output) {
         else {
           if (!is.null(input$ggeneset)) {
           geneset <- readr::read_tsv(input$ggeneset$datapath)
-          geneset <- geneset %>% ggpubr::mutate(SYMBOL = stringr::str_trim(stringr::str_to_title(SYMBOL)))
+          geneset <- geneset %>% ggpubr::mutate(SYMBOL = stringr::str_trim(SYMBOL))
           geneset <- as.list(geneset['SYMBOL'])
           sset<- volc_in[volc_in$genes %in% geneset$SYMBOL,]
         }

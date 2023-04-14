@@ -1068,7 +1068,7 @@ server <- function(input, output) {
     gset2 <- sobj$obj@assays[["SCT"]]@var.features[sobj$obj@assays[["SCT"]]@var.features %in% gset2]
     Module_features <- list("1" = gset1, "2" = gset2)
     sobj$obj <- Seurat::AddModuleScore(sobj$obj, name = modname, assay = Seurat::DefaultAssay(sobj$obj), features = Module_features, search = TRUE)
-    pprogress$inc(1, message = "Done!")
+    progress$inc(1, message = "Done!")
   })
 
   output$modfeature <- renderUI({
