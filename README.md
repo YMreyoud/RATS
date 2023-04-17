@@ -199,3 +199,9 @@ To perform this analysis follow these steps:
 
 # 10. Subset
 This section allows the user to subset their data for further analysis. For example, if a user would like to further subcluster and analyze their macrophage population, they would select 'cell_type' as the Ident, and then select 'Macrophages' as their values. The user also has the option to recluster by setting 'CLuster' to TRUE, and then setting the appropriate clustering resolution. This subset can then be used in any of the other analysis sections. To revert back to the original object, simply click 'Revert to Parent'. 
+
+# 11. Pseudotime
+This section allows the user to leverage the monocle3 package to perform pseudotime analysis. Simply select the gene you desire to track, and click 'Run Pseudotime'. This wil generate a pseudotime graph which can be downloaded. 
+
+# 12. Graph Generator
+This section gives the user the ability to generate many different types of graphs and figures. The 'Graph Options' subtab is used to define the parameters of the graph, while the 'Download Options' subtab is used to set the download options including size and file type. 
