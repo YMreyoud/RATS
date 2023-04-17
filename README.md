@@ -182,3 +182,17 @@ Once the identifiy of your clusters has been determined from the previous sectio
 This section allows the user to perform differential expression analysis and enrichment analysis using EnrichR. To perform DGE, the user must first select the idents hat contain their desired comparison. In most cases this will euther be 'seurat_clusters' or 'celltype.condition'. Next, the user my select the two identities whose expression the user would like to compare. the format for this is x vs y. Once these selections are made, the table of differentially expressed genes will be populated. The yser can download this table for further analysis. 
 
 Next, the user can perform enrichment analysis on this differential expression table using the EnrichR subtab. Simply select the list of geneset databases you would like to use, and clicl 'Run EnrichR'. This will generate postive enrichment and negative enrichment graphs for each database selected. These can be viewed in the 'Positive Enrichment' and 'Negative Enrichment' output subtabs.
+
+# 8. Cell Cycle Analysis
+This section simply allows the user to perfom a cell-cycle analysis, which scores each cell based on its expression of cell cycle markers, and classifies it as being in S phase, G1, or G2. Simply click 'Run Analysis' to perform the analysis. Results can be viewed in dimplot format on the right side, and can be split by condition in the 'By Condition' output subtab.
+
+# 9. Module Score
+Similar to the cell cycle analysis, this section allows the user to upload two gene sets defining opposing cell states, define a module name, then score  each of the cells in the gene set on their expression levels of those two gene sets. This can then be visualized as a blended feature plot using the Visualize Module tab.
+
+To perform this analysis follow these steps:
+- Upload first geneset (M1.csv, found in the sample data folder) which contains genes that define pro-inflammatory macrophage polarization
+- Upload second geneset (M2.csv, found in the sample data folder) which contains genes that define anti-inflammatory macrophage polarization
+- Add desired module name. 'Polarization' for this example.
+- Click 'Add Module'
+- To visualize the results, click the 'Visualize Module' subtab and select the newly added idents, which, in this case, will be 'Polarization1', and 'Polarization2'.
+- Click the 'Module Graph' output subtab to view the blended featureplot.
