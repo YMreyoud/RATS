@@ -138,8 +138,15 @@ This singe-cell RNA seq analysis tool creats a user friendly interface to allow 
 # 2. Data Input:
 scShiny() accepts three different types of data as input. 
 - Option 1: Load 10x
-  - For this input, you must select a parent folder containing a subfolder for each sample you would like to analyze. In this subfolders, there must be three files: barcodes.tsv.gz, features.tsv.gz, and matrix.mtx.gz. These files are generated from CellRanger.
+  - For this input, you must select a parent folder containing a subfolder for each sample you would like to analyze. In these subfolders, there must be three files: barcodes.tsv.gz, features.tsv.gz, and matrix.mtx.gz. These files are generated from CellRanger.
 - Option 2: Load Loom
   - This option allows you to select loom files generated using velocyto. This filetype is useful for retaining spliced and unspliced read data for downstream analysis such as scVelo velocity analysis. 
 - Option 2: Load Model
   - This option allows the user to upload an R object of a previously generated seurat object. This is useful for loading in any previously analyzed data for continued exploration. 
+
+# 3. Data Merging:
+scShiny() offers two methods for merging data samples into one seurat object. These usefulness of these two methods depends on your specific experiment.
+- Simple Merge:
+  - This merge methods, as the title suggests, simple merges the count matrices from the experiment without accounting for any variation due to batch effects. We recommend only using this type of merge if all samples were run together for sequencing.
+- Integrate:
+  - This merge method accounts for variation due to batch effects by finding integration anchors between samples and using this anchors to normalize the data to eliminate batch effects. This method should always be used for data that was sequenced in different batches. 
