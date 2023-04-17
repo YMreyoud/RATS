@@ -167,6 +167,7 @@ The filters are as follows:
 
 # 5. Expression Exploration
 This section is useful for exploring the gene expression within your clusters to help classify the different clusters based on their expression. The Featureplot subsection allows you to view the expression of genes on a UMAP representation. The grah for this subsection is shown under the 'Interactive Feature Plot' tab. The second functionality of this section is annotation using SingleR. 
+
 There are two ways to annotate your cells:
 - Celldex
   - This option allows you to select a reference from the Celldex database. This is the recommended method for cell annotation. Simply select the desired dataset from the dropdown and click 'Run SingleR Labeling'
