@@ -16,6 +16,7 @@ Yassin Mreyoud
   - [5. Make desired contrasts](#5-make-desired-contrasts)
   - [6. Identify differentially expressed genes](#6-identify-differentially-expressed-genes)
   - [7. Generate figures](#7-generate-figures)
+ - [Walkthrough: Single-cell RNA seq analysis of two sample experiment](#walkthrough-single-cell-rna-seq-analysis-of-two-sample-experiment)
 - [Contact](#contact)
 
 
@@ -128,3 +129,4 @@ This tool allows users to generate volcano plots and heatmaps. Use the 'Graph Ty
 ![](https://github.com/YMreyoud/BulkRNAseqShiny/blob/main/images/heatmap.gif)
 
 
+# Walkthrough: Single-cell RNA seq analysis of two sample experiment
