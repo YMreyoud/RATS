@@ -154,3 +154,21 @@ scShiny() offers two methods for merging data samples into one seurat object. Th
 After successfully merging, scShiny() will output a series of graphs exploring the quality of the data. These graphs include information regarding mitrochondrial read percentace, feature counts, RNA counts, PCA elbow plot, UMAP plot, and more. These graphs can then be used in the following section to set appropriate quality control parameters. 
 
 # 4. Quality Control:
+Quality control is an important part of analyzing any sequencing data. The primary goal of this QC step is to remove low quality reads, multiplets, and dying cells. This is done through a seq of filters that act act on count number, feature number, and percent mitochondrial reads.
+The filters are as follows:
+- Cutoffs for number of counts:
+  - Cells with counts that are too low or too high indicate low quality cells or multiplets. Set your cutoffs according to the histogram of RNA counts in the 'Merging' section.
+- Cutoffs for number of features:
+  - Once again, low feature counts indicate poor quality reads, and high feature counts indicate multiplets. Use the graphs in the 'Merging' section to appropriate set your fulters for your specific data.
+- Max mitochondrial read percentage:
+  - Cells with a high percentage of mitochondrial reads are assumed to be dying and should be removed. Use the histogram in the 'Merging' section to set this cutoff. 
+- Resolution for clustering:
+  - This is th eresolution from 0 to 1 to use for determining clusters within the data. A higher resolution results in a higher number of more specific clusters; this is useful for fidning very specific cell types with little variation form one another. A low resolution is less sensitive, but more useful for finding general cell-types with grater variation. 
+
+# 5. Expression Exploration
+This section is useful for exploring the gene expression within your clusters to help classify the different clusters based on their expression. The Featureplot subsection allows you to view the expression of genes on a UMAP representation. The grah for this subsection is shown under the 'Interactive Feature Plot' tab. The second functionality of this section is annotation using SingleR. 
+There are two ways to annotate your cells:
+- Celldex
+  - This option allows you to select a reference from the Celldex database. This is the recommended method for cell annotation. Simply select the desired dataset from the dropdown and click 'Run SingleR Labeling'
+- Custom reference
+  - Alternatively, users can upload their own .rds reference file in SingleCellExperiment format to use for annotation.
