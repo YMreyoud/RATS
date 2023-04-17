@@ -196,3 +196,6 @@ To perform this analysis follow these steps:
 - Click 'Add Module'
 - To visualize the results, click the 'Visualize Module' subtab and select the newly added idents, which, in this case, will be 'Polarization1', and 'Polarization2'.
 - Click the 'Module Graph' output subtab to view the blended featureplot.
+
+# 10. Subset
+This section allows the user to subset their data for further analysis. For example, if a user would like to further subcluster and analyze their macrophage population, they would select 'cell_type' as the Ident, and then select 'Macrophages' as their values. The user also has the option to recluster by setting 'CLuster' to TRUE, and then setting the appropriate clustering resolution. This subset can then be used in any of the other analysis sections. To revert back to the original object, simply click 'Revert to Parent'. 
