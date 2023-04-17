@@ -138,8 +138,8 @@ This singe-cell RNA seq analysis tool creats a user friendly interface to allow 
 # 2. Data Input:
 scShiny() accepts three different types of data as input. 
 - Option 1: Load 10x
-- * For this input, you must select a parent folder containing a subfolder for each sample you would like to analyze. In this subfolders, there must be three files: barcodes.tsv.gz, features.tsv.gz, and matrix.mtx.gz. These files are generated from CellRanger.
+  - For this input, you must select a parent folder containing a subfolder for each sample you would like to analyze. In this subfolders, there must be three files: barcodes.tsv.gz, features.tsv.gz, and matrix.mtx.gz. These files are generated from CellRanger.
 - Option 2: Load Loom
-- * This option allows you to select loom files generated using velocyto. This filetype is useful for retaining spliced and unspliced read data for downstream analysis such as scVelo velocity analysis. 
+  - This option allows you to select loom files generated using velocyto. This filetype is useful for retaining spliced and unspliced read data for downstream analysis such as scVelo velocity analysis. 
 - Option 2: Load Model
-- * This option allows the user to upload an R object of a previously generated seurat object. This is useful for loading in any previously analyzed data for continued exploration. 
+  - This option allows the user to upload an R object of a previously generated seurat object. This is useful for loading in any previously analyzed data for continued exploration. 
