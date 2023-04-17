@@ -17,6 +17,7 @@ Yassin Mreyoud
   - [6. Identify differentially expressed genes](#6-identify-differentially-expressed-genes)
   - [7. Generate figures](#7-generate-figures)
  - [Walkthrough: Single-cell RNA seq analysis of two sample experiment](#walkthrough-single-cell-rna-seq-analysis-of-two-sample-experiment)
+  - [1. Introduction](#1-introduction)
 - [Contact](#contact)
 
 
@@ -130,3 +131,15 @@ This tool allows users to generate volcano plots and heatmaps. Use the 'Graph Ty
 
 
 # Walkthrough: Single-cell RNA seq analysis of two sample experiment
+
+# 1. Introduction:
+This singe-cell RNA seq analysis tool creats a user friendly interface to allow exploration of single-cell rna sequencing data. In this walkthrough, I will demonstrate the use of this tool to analyze scRNAseq data from an experiment consisting of counts from two samples of GM-CSF cultured murine bone marrow cells derived from two genotypes (WT and Bhlhe40-/-). This tool functions using various packages for analysis including Seurat, EnrichR, and Monocle3.
+
+# 2. Data Input:
+scShiny() accepts three different types of data as input. 
+- Option 1: Load 10x
+- * For this input, you must select a parent folder containing a subfolder for each sample you would like to analyze. In this subfolders, there must be three files: barcodes.tsv.gz, features.tsv.gz, and matrix.mtx.gz. These files are generated from CellRanger.
+- Option 2: Load Loom
+- * This option allows you to select loom files generated using velocyto. This filetype is useful for retaining spliced and unspliced read data for downstream analysis such as scVelo velocity analysis. 
+- Option 2: Load Model
+- * This option allows the user to upload an R object of a previously generated seurat object. This is useful for loading in any previously analyzed data for continued exploration. 
