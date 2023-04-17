@@ -150,3 +150,7 @@ scShiny() offers two methods for merging data samples into one seurat object. Th
   - This merge methods, as the title suggests, simple merges the count matrices from the experiment without accounting for any variation due to batch effects. We recommend only using this type of merge if all samples were run together for sequencing.
 - Integrate:
   - This merge method accounts for variation due to batch effects by finding integration anchors between samples and using this anchors to normalize the data to eliminate batch effects. This method should always be used for data that was sequenced in different batches. 
+
+After successfully merging, scShiny() will output a series of graphs exploring the quality of the data. These graphs include information regarding mitrochondrial read percentace, feature counts, RNA counts, PCA elbow plot, UMAP plot, and more. These graphs can then be used in the following section to set appropriate quality control parameters. 
+
+# 4. Quality Control:
