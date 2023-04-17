@@ -173,3 +173,7 @@ There are two ways to annotate your cells:
   - This option allows you to select a reference from the Celldex database. This is the recommended method for cell annotation. Simply select the desired dataset from the dropdown and click 'Run SingleR Labeling'
 - Custom reference
   - Alternatively, users can upload their own .rds reference file in SingleCellExperiment format to use for annotation.
+Once the annotation is done, two tables will be populated in the output. These tables will show the number of cells belonging to each cell type in each cluster. This table can then be used in corroboration with the feature plot to determine cluster identities. Clusters can then be re-labeled in the next section.
+
+# 6. Cluster Labels
+Once the identifiy of your clusters has been determined from the previous section, the user can use this section to relabel the clusters based on their annotations. Simply type in the label for each cluster, then click 'Re-Label'. A series of UMAP plots will appear showing the SingleR annotation, the Clusters, and the user-defined labels. 
