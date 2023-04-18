@@ -86,7 +86,6 @@ ReadVelocity <- function(file, engine = 'hdf5r', verbose = TRUE) {
 }
 
 
-
 `%>%` <- magrittr::`%>%`
 mouse_mito <- readr::read_csv(file = "Mouse.MitoCarta3.0.csv") %>% # Import list of mouse mitochondrial genes
   dplyr::select(c(Symbol, MitoCarta2.0_Score)) %>%
@@ -512,6 +511,7 @@ ui <- fluidPage(titlePanel(windowTitle = "Stallings Lab Single-Cell RNA Seq Anal
         ),
         tabPanel(
           "SingleR",
+          selectInput('celldexdb', 'Select reference from Celldex', choices = c('ImmGen','BlueprintENCODE', 'DICE', 'Human Primary Cell Atlas', 'Monaco', 'Mouse RNA-seq','Novershtern'),multiple = FALSE),
           fileInput("ref_se", "Reference for Labels", multiple = FALSE),
           actionButton("runsingler", "Run SingleR Labeling")
         )
@@ -830,10 +830,18 @@ server <- function(input, output) {
   })
 
   ref_se <- reactive({
-    if (is.null(input$ref_se)) {
-      return(NULL)
+    if (!is.null(input$ref_se)) {
+      return(readRDS(input$ref_se$datapath))
     }
-    return(readRDS(input$ref_se$datapath))
+    if (!is.null(input$celldexdb)) {
+      ifelse(input$celldexdb == 'ImmGen', return(celldex::ImmGenData()),
+             ifelse(input$celldexdb =='BlueprintENCODE', return(celldex::BlueprintEncodeData()),
+                    ifelse(input$celldexdb == 'DICE', return(celldex::DatabaseImmuneCellExpressionData()),
+                          ifelse(input$celldexdb == 'Human Primart Cell Atlas', return(celldex::HumanPrimaryCellAtlasData()),
+                                 ifelse(input$celldexdb == 'Monaco', return(celldex::MonacoImmuneData()),
+                                        ifelse(input$celldexdb == 'Mouse RNA-seq', return(celldex::MouseRNAseqData()),
+                                            return(celldex::NovershternHematopoieticData())))))))
+    }
   })
   # seuratObjQClabelled <- reactive({
   # req(seuratObjQC, ref_se())
