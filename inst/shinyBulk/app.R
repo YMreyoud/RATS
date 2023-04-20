@@ -54,9 +54,18 @@ graph_params <- function(graph_type, object, model = NULL) {
     params[[5]] <- selectInput("glabel", "Label", choices = c("FALSE", "TRUE"), multiple = FALSE)
   } else if (graph_type == "heatmap") {
     params[[1]] <- selectInput("ggenes", "Genes", choices = genes, multiple = TRUE)
-    params[[2]] <- selectizeInput("gcondition", "Conditions", choices = object$samples$group, multiple = TRUE)
+    params[[2]] <- fileInput("ggeneset", "Optional Geneset", multiple = FALSE)
+    params[[3]] <- selectizeInput("gcondition", "Conditions", choices = object$samples$group, multiple = TRUE)
+    params[[4]] <- selectInput("gcols", 'Brewer color pallet to use',
+                               choices = c('Blues', 'BuGn', 'BuPu', 'GnBu', 'Greens', 'Greys', 'Oranges', 'OrRd',
+                                           'PuBu', 'PuBuGn', 'PuRd', 'Purples', 'RdPu', 'Reds', 'YlGn', 'YlGnBu',
+                                           'YlOrBr', 'YlOrRd', 'BrBG', 'PiYG', 'PRGn', 'PuOr', 'RdBu', 'RdGy',
+                                           'RdYlBu', 'RdYlGn', 'Spectral'), selected = 'RdBu')
     #params[[3]] <- selectInput("gidents", "Idents", choices = idents, multiple = FALSE)
     #params[[4]] <- selectInput("gdotscale", "Scale", choices = c("TRUE", "FALSE"), multiple = FALSE)
+  } else if(graph_type == 'MDS') {
+    #params[[1]] <- selectizeInput('gcondition', 'Conditions', choices = object$samples$group, multiple = TRUE)
+    renderText('Graph MDS plot')
   }
   return(params)
 }
@@ -65,7 +74,7 @@ graph_params <- function(graph_type, object, model = NULL) {
 options(shiny.maxRequestSize = 100 * 1024^3)
 
 # Define UI for application that draws a histogram
-ui <-  fluidPage(titlePanel(windowTitle = "Stallings Lab Bulk RNA Seq Analysis", title = a(img(src = "logo.png", height = 100, width = 100, style = "margin:10px 10px"), href = "http://stallingslab.wustl.edu/", "Stallings Lab Bulk RNA Seq Analysis")),  navbarPage(" ",
+ui <-  fluidPage(titlePanel(windowTitle = "Stallings Lab Bulk RNA Seq Analysis", title = a(img(src = "logo.png", height = 100, width = 100, style = "margin:10px 10px"), href = "http://stallingslab.wustl.edu/", "Stallings Lab Bulk RNA Seq Analysis")),  theme = shinythemes::shinytheme("cerulean"), navbarPage(" ",
   id = "inTabsetm",
   tabPanel("Data Input",
     shiny::fluidRow(sidebarLayout(
@@ -129,8 +138,8 @@ ui <-  fluidPage(titlePanel(windowTitle = "Stallings Lab Bulk RNA Seq Analysis",
            fluidRow(sidebarLayout(
              sidebarPanel(
                uiOutput('selectcon'),
-               actionButton('add', 'Add Contrast'),
-               actionButton('clear','Clear'),
+               #actionButton('add', 'Add Contrast'),
+               #actionButton('clear','Clear'),
                actionButton('done', 'Done')
              ),
              mainPanel(
@@ -158,7 +167,7 @@ ui <-  fluidPage(titlePanel(windowTitle = "Stallings Lab Bulk RNA Seq Analysis",
              sidebarPanel(tabsetPanel(
                tabPanel(
                  "Graph options",
-                 selectInput("graphtomake", label = "Graph Type:", choices = c("volcano", "heatmap"), multiple = FALSE),
+                 selectInput("graphtomake", label = "Graph Type:", choices = c("volcano", "heatmap", 'MDS'), multiple = FALSE),
                  uiOutput("graphparams"),
                  actionButton("graphbutton", label = "Graph")
                ),
@@ -282,24 +291,39 @@ server <- function(input, output) {
         limma::plotMD(raw_counts$model)
       })
     })
+
+    all_cons <- reactive({
+      comparisons <- c()
+      conditions <- levels(raw_counts$dge$samples$group)
+      for (i in 1:length(conditions)) {
+        for (j in 1:length(conditions)) {
+          if (i != j) {
+            comparisons <- BiocGenerics::append(comparisons, stringr::str_c(conditions[i],'-',conditions[j]))
+          }
+        }
+      }
+      return(comparisons)
+    })
+
     output$selectcon <- renderUI({
-      selectizeInput("selected", "Select Contrast", choices = levels(raw_counts$dge$samples$group), selected = NULL, options = list(maxItems = 2))
+      selectizeInput("selected", "Select Contrasts", choices = all_cons(), selected = NULL, multiple = TRUE)
+      #selectizeInput("selected", "Select Contrast", choices = levels(raw_counts$dge$samples$group), selected = NULL, options = list(maxItems = 2))
     })
-    observeEvent(input$add, {
-      raw_counts$contrasts <- BiocGenerics::append(raw_counts$contrasts, stringr::str_c(input$selected[1],'-',input$selected[2]))
-    })
-    observeEvent(input$clear, {
-      raw_counts$contrasts <- c()
+    #observeEvent(input$add, {
+    #  raw_counts$contrasts <- BiocGenerics::append(raw_counts$contrasts, stringr::str_c(input$selected[1],'-',input$selected[2]))
+    #})
+    #observeEvent(input$clear, {
+    #  raw_counts$contrasts <- c()
       #output$currcons <- renderText({
       #  paste('Current selections:')
       #})
-    })
+    #})
     output$currcons <- renderText({
-      BiocGenerics::paste(BiocGenerics::append(raw_counts$contrasts, 'Current selections:', 0), collapse = ", ")
+      BiocGenerics::paste(BiocGenerics::append(input$selected, 'Current selections:', 0), collapse = ", ")
     })
     observeEvent(input$done, {
-      if (purrr::is_empty(raw_counts$contrasts)) return()
-      raw_counts$contrastmat <- limma::makeContrasts(contrasts = raw_counts$contrasts, levels = raw_counts$design.mat)
+      if (purrr::is_empty(input$selected)) return()
+      raw_counts$contrastmat <- limma::makeContrasts(contrasts = input$selected, levels = raw_counts$design.mat)
       raw_counts$model <- limma::contrasts.fit(raw_counts$model, raw_counts$contrastmat)
       raw_counts$model <- limma::eBayes(raw_counts$model)
     })
@@ -332,6 +356,9 @@ server <- function(input, output) {
       params <- graph_params(input$graphtomake, raw_counts$dge, raw_counts$model)
       params
     })
+
+    heatmap_vals <- reactiveVal(value = NULL)
+
     graph <- eventReactive(input$graphbutton, {
       req(raw_counts$dge, input$graphtomake, raw_counts$model)
       if (input$graphtomake == "volcano") {
@@ -372,6 +399,9 @@ server <- function(input, output) {
         else {volc}
         }}
       else if (input$graphtomake == 'heatmap') {
+        if (is.null(input$ggeneset) & is.null(input$ggenes)){
+          return(NULL)
+        }
         hm <- edgeR::cpm(raw_counts$dge, log = TRUE, prior.count = 1)
         groups <- c()
         for (i in seq_len(length(input$count))) {
@@ -380,8 +410,23 @@ server <- function(input, output) {
         colnames(hm) <- groups
         hm <- hm[,colnames(hm) %in% input$gcondition]
         rownames(hm) <- raw_counts$dge$genes$genes
-        hm <- hm[rownames(hm) %in% input$ggenes,]
-        pheatmap::pheatmap(hm)
+        if (!is.null(input$ggeneset)) {
+          geneset <- readr::read_tsv(input$ggeneset$datapath)
+          geneset <- geneset %>% ggpubr::mutate(SYMBOL = stringr::str_trim(SYMBOL))
+          geneset <- as.list(geneset['SYMBOL'])
+          hm <- hm[rownames(hm) %in% geneset$SYMBOL,]
+        }
+        else {
+          hm <- hm[rownames(hm) %in% input$ggenes,]
+        }
+        heatmap_vals(hm)
+        heatmap(hm, scale = 'row', col = colorRampPalette(rev(RColorBrewer::brewer.pal(8, input$gcols)))(25))
+        #pheatmap::pheatmap(hm)
+      }
+      else if (input$graphtomake == 'MDS') {
+        mds <- limma::plotMDS(raw_counts$dge, labels = raw_counts$dge$samples$group)
+        toplot <- data.frame(Dim1 = mds$x, Dim2 = mds$y, Group = raw_counts$dge$samples$group)
+        ggplot(toplot, aes(Dim1,Dim2,color=Group, size=2)) + geom_point()+ theme(text = element_text(size = 20))
       }
     })
     output$graph <- renderPlot({
@@ -389,7 +434,7 @@ server <- function(input, output) {
     })
     output$downloadgraph <- downloadHandler(
       filename = function() {
-        if (input$graphtomake == 'volcano'){
+        if (input$graphtomake == 'volcano' | 'MDS'){
           paste(input$graphtomake, input$gmode, sep = "")
         }
         else {
@@ -398,17 +443,8 @@ server <- function(input, output) {
       },
       content = function(file) {
       if (input$graphtomake == 'heatmap') {
-        hm <- edgeR::cpm(raw_counts$dge, log = TRUE, prior.count = 1)
-        groups <- c()
-        for (i in seq_len(length(input$count))) {
-          groups <- c(groups, input[[paste0("col", input$count[[i]])]])
-        }
-        colnames(hm) <- groups
-        hm <- hm[,colnames(hm) %in% input$gcondition]
-        rownames(hm) <- raw_counts$dge$genes$genes
-        hm <- hm[rownames(hm) %in% input$ggenes,]
         pdf(file, width=input$gwidth, height=input$gheight)
-        pheatmap::pheatmap(hm)
+        heatmap(heatmap_vals(), scale = 'row', col = colorRampPalette(rev(RColorBrewer::brewer.pal(8, input$gcols)))(25))
         dev.off()
 
           #save_pheatmap(graph(), file, input$gwidth, input$gheight)
