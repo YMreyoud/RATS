@@ -492,7 +492,7 @@ ui <- fluidPage(titlePanel(windowTitle = "Stallings Lab Single-Cell RNA Seq Anal
         sliderInput("ncounts", "Cutoffs for number of counts", min = 0, max = 100000, value = c(1000, 7.5e4)),
         sliderInput("nfeatures", "Cutoffs for number of features (genes)", min = 0, max = 25000, value = c(500, 6500)),
         numericInput("percentmt", "Maximum percentage of mitochondrial DNA allowed", value = 5),
-        numericInput("res", "Resolution for clustering from 0 to 1", value = 0.5),
+        numericInput("res", "Resolution for clustering from 0 to 1", value = 0.5, min = 0, max = 1),
         actionButton("runqc", "Run QC")
       ),
       mainPanel(tabsetPanel(tabPanel(
@@ -632,7 +632,10 @@ ui <- fluidPage(titlePanel(windowTitle = "Stallings Lab Single-Cell RNA Seq Anal
       sidebarPanel(
         uiOutput('subsetident'),
         uiOutput('subsetfeatures'),
-        actionButton('runsubset', 'Subset')
+        selectInput('subreclust', 'Recluster', choices = c('TRUE', 'FALSE'), multiple = FALSE, selected = 'FALSE'),
+        uiOutput('subclustres'),
+        actionButton('runsubset', 'Subset'),
+        actionButton('restore','Restore Parent')
       ),
       mainPanel(
         plotOutput("subsetdimplot")
@@ -1125,6 +1128,45 @@ server <- function(input, output) {
     Seurat::Idents(sobj$obj) <- sobj$obj[[input$subsetidents]]
     sobj$obj <- subset(sobj$obj, idents = input$subsetvals)
     sobj$obj <- refine_metadata_levels(sobj$obj)
+    progress$close()
+    if (input$subreclust == 'TRUE') {
+      progress <- shiny::Progress$new(max = 5, min = 0)
+      on.exit(progress$close())
+      progress$set(message= "Re-clustering...", value = 0)
+      progress$inc(1, detail = "Rescaling...")
+      sobj$obj <- Seurat::SCTransform(sobj$obj)
+      progress$inc(1, detail = "Running PCA...")
+      sobj$obj <- Seurat::RunPCA(sobj$obj)
+      progress$inc(1, detail = "Running UMAP...")
+      sobj$obj <- Seurat::RunUMAP(sobj$obj, reduction = 'pca', dims = 1:30)
+      progress$inc(1, detail = "Finding neighbors...")
+      sobj$obj <- Seurat::FindNeighbors(sobj$obj)
+      progress$inc(1, detail = "Clustering...")
+      sobj$obj <- Seurat::FindClusters(sobj$obj, resolution = input$subres)
+    }
+  })
+
+  output$subclustres <- renderUI({
+    if (input$subreclust == 'TRUE'){
+      output_rename = tagList()
+      output_rename[[1]] = numericInput("subres", "Resolution for clustering from 0 to 1", value = 0.5, min = 0, max = 1)
+      output_rename
+    }
+  })
+
+  observeEvent(input$restore, {
+    progress <- shiny::Progress$new(max = 1, min = 0)
+    on.exit(progress$close())
+    progress$set(message= "Saving current object...", value = 0)
+    temp <- sobj$obj
+    progress$inc(1, message = "Restoring parent...")
+    sobj$obj <- sobj$prev
+    sobj$prev <- temp
+    rm(temp)
+  })
+
+  output$subsetdimplot <- renderPlot({
+    Seurat::DimPlot(sobj$obj)
   })
 
   output$pseudoroot <- renderUI({
