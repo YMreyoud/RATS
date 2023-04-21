@@ -434,7 +434,7 @@ server <- function(input, output) {
     })
     output$downloadgraph <- downloadHandler(
       filename = function() {
-        if (input$graphtomake == 'volcano' | 'MDS'){
+        if (input$graphtomake == 'volcano' | input$graphtomake == 'MDS'){
           paste(input$graphtomake, input$gmode, sep = "")
         }
         else {
