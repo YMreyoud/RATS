@@ -153,10 +153,10 @@ This tool allows users to generate volcano plots and heatmaps. Use the 'Graph Ty
 
 # Walkthrough: Single-cell RNA seq analysis of two sample experiment
 
-# 1. Introduction
+## 1. Introduction to shnySC
 This singe-cell RNA seq analysis tool creats a user friendly interface to allow exploration of single-cell rna sequencing data. In this walkthrough, I will demonstrate the use of this tool to analyze scRNAseq data from an experiment consisting of counts from two samples of GM-CSF cultured murine bone marrow cells derived from two genotypes (WT and Bhlhe40-/-). This tool functions using various packages for analysis including Seurat, EnrichR, and Monocle3.
 
-# 2. Data Input
+## 2. Data Input
 scShiny() accepts three different types of data as input. 
 - Option 1: Load 10x
   - For this input, you must select a parent folder containing a subfolder for each sample you would like to analyze. In these subfolders, there must be three files: barcodes.tsv.gz, features.tsv.gz, and matrix.mtx.gz. These files are generated from CellRanger.
@@ -165,7 +165,7 @@ scShiny() accepts three different types of data as input.
 - Option 2: Load Model
   - This option allows the user to upload an R object of a previously generated seurat object. This is useful for loading in any previously analyzed data for continued exploration. 
 
-# 3. Data Merging
+## 3. Data Merging
 scShiny() offers two methods for merging data samples into one seurat object. These usefulness of these two methods depends on your specific experiment.
 - Simple Merge:
   - This merge methods, as the title suggests, simple merges the count matrices from the experiment without accounting for any variation due to batch effects. We recommend only using this type of merge if all samples were run together for sequencing.
@@ -174,7 +174,7 @@ scShiny() offers two methods for merging data samples into one seurat object. Th
 
 After successfully merging, scShiny() will output a series of graphs exploring the quality of the data. These graphs include information regarding mitrochondrial read percentace, feature counts, RNA counts, PCA elbow plot, UMAP plot, and more. These graphs can then be used in the following section to set appropriate quality control parameters. 
 
-# 4. Quality Control
+## 4. Quality Control
 Quality control is an important part of analyzing any sequencing data. The primary goal of this QC step is to remove low quality reads, multiplets, and dying cells. This is done through a seq of filters that act act on count number, feature number, and percent mitochondrial reads.
 The filters are as follows:
 - Cutoffs for number of counts:
@@ -186,7 +186,7 @@ The filters are as follows:
 - Resolution for clustering:
   - This is th eresolution from 0 to 1 to use for determining clusters within the data. A higher resolution results in a higher number of more specific clusters; this is useful for fidning very specific cell types with little variation form one another. A low resolution is less sensitive, but more useful for finding general cell-types with grater variation. 
 
-# 5. Expression Exploration
+## 5. Expression Exploration
 This section is useful for exploring the gene expression within your clusters to help classify the different clusters based on their expression. The Featureplot subsection allows you to view the expression of genes on a UMAP representation. The grah for this subsection is shown under the 'Interactive Feature Plot' tab. The second functionality of this section is annotation using SingleR. 
 
 There are two ways to annotate your cells:
@@ -196,18 +196,18 @@ There are two ways to annotate your cells:
   - Alternatively, users can upload their own .rds reference file in SingleCellExperiment format to use for annotation.
 Once the annotation is done, two tables will be populated in the output. These tables will show the number of cells belonging to each cell type in each cluster. This table can then be used in corroboration with the feature plot to determine cluster identities. Clusters can then be re-labeled in the next section.
 
-# 6. Cluster Labels
+## 6. Cluster Labels
 Once the identifiy of your clusters has been determined from the previous section, the user can use this section to relabel the clusters based on their annotations. Simply type in the label for each cluster, then click 'Re-Label'. A series of UMAP plots will appear showing the SingleR annotation, the Clusters, and the user-defined labels. 
 
-# 7. Differential Expression
+## 7. Differential Expression
 This section allows the user to perform differential expression analysis and enrichment analysis using EnrichR. To perform DGE, the user must first select the idents hat contain their desired comparison. In most cases this will euther be 'seurat_clusters' or 'celltype.condition'. Next, the user my select the two identities whose expression the user would like to compare. the format for this is x vs y. Once these selections are made, the table of differentially expressed genes will be populated. The yser can download this table for further analysis. 
 
 Next, the user can perform enrichment analysis on this differential expression table using the EnrichR subtab. Simply select the list of geneset databases you would like to use, and clicl 'Run EnrichR'. This will generate postive enrichment and negative enrichment graphs for each database selected. These can be viewed in the 'Positive Enrichment' and 'Negative Enrichment' output subtabs.
 
-# 8. Cell Cycle Analysis
+## 8. Cell Cycle Analysis
 This section simply allows the user to perfom a cell-cycle analysis, which scores each cell based on its expression of cell cycle markers, and classifies it as being in S phase, G1, or G2. Simply click 'Run Analysis' to perform the analysis. Results can be viewed in dimplot format on the right side, and can be split by condition in the 'By Condition' output subtab.
 
-# 9. Module Score
+## 9. Module Score
 Similar to the cell cycle analysis, this section allows the user to upload two gene sets defining opposing cell states, define a module name, then score  each of the cells in the gene set on their expression levels of those two gene sets. This can then be visualized as a blended feature plot using the Visualize Module tab.
 
 To perform this analysis follow these steps:
@@ -218,11 +218,11 @@ To perform this analysis follow these steps:
 - To visualize the results, click the 'Visualize Module' subtab and select the newly added idents, which, in this case, will be 'Polarization1', and 'Polarization2'.
 - Click the 'Module Graph' output subtab to view the blended featureplot.
 
-# 10. Subset
+## 10. Subset
 This section allows the user to subset their data for further analysis. For example, if a user would like to further subcluster and analyze their macrophage population, they would select 'cell_type' as the Ident, and then select 'Macrophages' as their values. The user also has the option to recluster by setting 'Recluster' to TRUE, and then setting the appropriate clustering resolution. This subset can then be used in any of the other analysis sections. To revert back to the original object, simply click 'Restore Parent'. (Note: the 'Restore Parent' feature only retains the most recent object in memory, thus, if you subset an object twice in a row without restoring the parent in between, the parent data will be lost. I recommend downloading your object from the quality control tab before subsetting.)
 
-# 11. Pseudotime
+## 11. Pseudotime
 This section allows the user to leverage the monocle3 package to perform pseudotime analysis. Simply select the gene you desire to track, and click 'Run Pseudotime'. This wil generate a pseudotime graph which can be downloaded. 
 
-# 12. Graph Generator
+## 12. Graph Generator
 This section gives the user the ability to generate many different types of graphs and figures. The 'Graph Options' subtab is used to define the parameters of the graph, while the 'Download Options' subtab is used to set the download options including size and file type. 
