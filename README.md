@@ -16,7 +16,7 @@ Yassin Mreyoud
   - [5. Make desired contrasts](#5-make-desired-contrasts)
   - [6. Identify differentially expressed genes](#6-identify-differentially-expressed-genes)
   - [7. Generate figures](#7-generate-figures)
- - [Walkthrough: Single cell RNA seq analysis of two sample experiment](#walkthrough-single-cell-rna-seq-analysis-of-two-sample-experiment)
+- [Walkthrough: Single cell RNA seq analysis of two sample experiment](#walkthrough-single-cell-rna-seq-analysis-of-two-sample-experiment)
   - [1. Introduction to shinySC](#1-introduction-to-shinysc)
   - [2. Data Input](#2-data-input)
   - [3. Data Merging](#3-data-merging)
