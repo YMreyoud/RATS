@@ -21,8 +21,9 @@ Yassin Mreyoud
 - [Contact](#contact)
 
 
-##  1. Introduction to BulkRNAseqShiny
+##  1. Introduction to RATS
 
+The RNA-seq analysis tool set (RATS) is an interactive shiny-based tool that leverages packages such as Seurat, Limma, EdgeR, EnrichR, Monocle3, and more to enable researchers with any level of bioinformatics expertise to conduct basic analysis of bulk and single-cell RNA sequencing data. 
 This tool uses bioconductor packages [limma](https://bioconductor.org/packages/release/bioc/html/limma.html) and [edgeR](https://bioconductor.org/packages/release/bioc/html/edgeR.html) to perform model fitting and differential gene expression analysis on bulk RNA-seq raw count data.
 
 This tool also provides users the ability to generate several types of plots using [ggplot2](https://ggplot2.tidyverse.org/) and [pheatmap](https://www.rdocumentation.org/packages/pheatmap/versions/1.0.12/topics/pheatmap) packages. 
@@ -31,7 +32,15 @@ The sample data used to demonstrate this tool's use was generated from an experi
 
 ##  2. Main functionalities of BulkRNAseqShiny
 
-The basic pipeline of BulkRNAseqShiny analysis involves:
+The basic pipeline of RATS single-cell analysis involves:
+- Loading in sparse matrix data in form of Cell Ranger output, volocyto loom file, or Seurat R object.
+- Merging samples for analysis (if not loading in Seurat object)
+- performing quality control and filtering on merged data
+- Identifying and labeling clusters
+- Performing desired analyses, including differential expression, cell cycle, gene set score, subclustering, and pseudotime
+- Generating figures to visualize analysis
+
+The basic pipeline of RATS bulk analysis involves:
 - Loading raw count data from bulk RNA sequencing experiment.
 - pre-processing data to define columns containing samples, genes, and conditions.
 - Fitting a model to the data using limma or voom.
