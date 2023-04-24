@@ -9,7 +9,7 @@ Yassin Mreyoud
   - [1. Install the package from github](#1-install-the-package-from-github)
   - [2. Launch package](#2-launch-package)
 - [Walkthrough: Bulkseq analysis of three condition experiment](#walkthrough-bulkseq-analysis-of-three-condition-experiment)
-  - [1. Introduction](#1-introduction)
+  - [1. Introduction to shinyBulk](#1-introduction-to-shinyBulk)
   - [2. Download and load data](#2-download-and-load-data)
   - [3. Prepare data for analysis](#3-prepare-data-for-analysis)
   - [4. Fit model to data](#4-fit-model-to-data)
@@ -17,7 +17,18 @@ Yassin Mreyoud
   - [6. Identify differentially expressed genes](#6-identify-differentially-expressed-genes)
   - [7. Generate figures](#7-generate-figures)
  - [Walkthrough: Single-cell RNA seq analysis of two sample experiment](#walkthrough-single-cell-rna-seq-analysis-of-two-sample-experiment)
-  - [1. Introduction](#1-introduction)
+  - [1. Introduction to shinySC](#1-introduction-to-shinysc)
+  - [2. Data Input](#2-data-input)
+  - [3. Data Merging](#3-data-merging)
+  - [4. Quality Control](#4-quality-control)
+  - [5. Expression Exploration](#5-expression-exploration)
+  - [6. Cluster Labels](#6-cluster-labels)
+  - [7. Differential Expression](#7-differential-expression)
+  - [8. Cell Cycle Analysis](#8-cell-cycle-analysis)
+  - [9. Module Score](#9-module-score)
+  - [10. Subset](#10-subset)
+  - [11. Pseudotime](#11-pseudotime)
+  - [12. Graph Generator(#12-graph-generator)
 - [Contact](#contact)
 
 
@@ -73,7 +84,7 @@ Note: you may need to click 'open in browser' at the top of the window if the wi
 
 # Walkthrough: Bulkseq analysis of three condition experiment
 
-##  1. Introduction
+##  1. Introduction to shinyBulk
 In this walkthrough we will perform a standard bulk RNA-sequencing analysis on data generated from an experiment treating _Mycobacterium tuberculosis_ with one of three conditions:
 - ZD 40um
 - ZD 80um
@@ -142,10 +153,10 @@ This tool allows users to generate volcano plots and heatmaps. Use the 'Graph Ty
 
 # Walkthrough: Single-cell RNA seq analysis of two sample experiment
 
-# 1. Introduction:
+# 1. Introduction
 This singe-cell RNA seq analysis tool creats a user friendly interface to allow exploration of single-cell rna sequencing data. In this walkthrough, I will demonstrate the use of this tool to analyze scRNAseq data from an experiment consisting of counts from two samples of GM-CSF cultured murine bone marrow cells derived from two genotypes (WT and Bhlhe40-/-). This tool functions using various packages for analysis including Seurat, EnrichR, and Monocle3.
 
-# 2. Data Input:
+# 2. Data Input
 scShiny() accepts three different types of data as input. 
 - Option 1: Load 10x
   - For this input, you must select a parent folder containing a subfolder for each sample you would like to analyze. In these subfolders, there must be three files: barcodes.tsv.gz, features.tsv.gz, and matrix.mtx.gz. These files are generated from CellRanger.
@@ -154,7 +165,7 @@ scShiny() accepts three different types of data as input.
 - Option 2: Load Model
   - This option allows the user to upload an R object of a previously generated seurat object. This is useful for loading in any previously analyzed data for continued exploration. 
 
-# 3. Data Merging:
+# 3. Data Merging
 scShiny() offers two methods for merging data samples into one seurat object. These usefulness of these two methods depends on your specific experiment.
 - Simple Merge:
   - This merge methods, as the title suggests, simple merges the count matrices from the experiment without accounting for any variation due to batch effects. We recommend only using this type of merge if all samples were run together for sequencing.
@@ -163,7 +174,7 @@ scShiny() offers two methods for merging data samples into one seurat object. Th
 
 After successfully merging, scShiny() will output a series of graphs exploring the quality of the data. These graphs include information regarding mitrochondrial read percentace, feature counts, RNA counts, PCA elbow plot, UMAP plot, and more. These graphs can then be used in the following section to set appropriate quality control parameters. 
 
-# 4. Quality Control:
+# 4. Quality Control
 Quality control is an important part of analyzing any sequencing data. The primary goal of this QC step is to remove low quality reads, multiplets, and dying cells. This is done through a seq of filters that act act on count number, feature number, and percent mitochondrial reads.
 The filters are as follows:
 - Cutoffs for number of counts:
