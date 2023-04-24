@@ -59,13 +59,14 @@ This package has been tested using R version 4.2.2. This tool also requires inst
   devtools::install_version("Matrix", version = "1.5.3", force = TRUE) #Make sure Matrix version is 1.5.3 or newer!
   
   # Install BulkRNAseqShiny
-  devtools::install_github("YMreyoud/BulkRNAseqShiny")
+  devtools::install_github("YMreyoud/RATS")
 ```
 
 ##  2. Launch package
 To launch the interactive package, use the following command:
 ``` r
-  BulkRNAseqShiny::shinyBulk()
+  RATS::shinySC() # To launcht the single-cell analysis tool
+  RATS::shinyBulk() #To launch the bulk analysis tool
 ```
 This will open an browser-based window for interactive use of the tool.
 Note: you may need to click 'open in browser' at the top of the window if the window is gray.
