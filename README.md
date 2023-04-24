@@ -29,6 +29,7 @@ Yassin Mreyoud
   - [10. Subset](#10-subset)
   - [11. Pseudotime](#11-pseudotime)
   - [12. Graph Generator(#12-graph-generator)
+ - 
 - [Contact](#contact)
 
 
@@ -153,7 +154,7 @@ This tool allows users to generate volcano plots and heatmaps. Use the 'Graph Ty
 
 # Walkthrough: Single-cell RNA seq analysis of two sample experiment
 
-## 1. Introduction to shnySC
+## 1. Introduction to shinySC
 This singe-cell RNA seq analysis tool creats a user friendly interface to allow exploration of single-cell rna sequencing data. In this walkthrough, I will demonstrate the use of this tool to analyze scRNAseq data from an experiment consisting of counts from two samples of GM-CSF cultured murine bone marrow cells derived from two genotypes (WT and Bhlhe40-/-). This tool functions using various packages for analysis including Seurat, EnrichR, and Monocle3.
 
 ## 2. Data Input
