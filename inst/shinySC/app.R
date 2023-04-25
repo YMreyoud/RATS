@@ -1202,7 +1202,9 @@ server <- function(input, output) {
     if (input$graphtomake == "ridgeplot") {
       Seurat::RidgePlot(sobj$obj, features = input$gfeature, cols = input$gcolors, sort = input$gsort, stack = input$gstack)
     } else if (input$graphtomake == "dotplot") {
-      Seurat::DotPlot(sobj$obj, features = input$gfeature, cols = input$gcolors, scale = input$gdotscale)
+      if (length(input$gfeature) > 1) {
+        Seurat::DotPlot(sobj$obj, features = input$gfeature, cols = input$gcolors, scale = input$gdotscale)
+      }
     } else if (input$graphtomake == "dimplot") {
       Seurat::DimPlot(sobj$obj, pt.size = input$gptsize, cols = input$gcolors, group.by = input$gidents, label = input$glabel, repel = input$grepel)
     } else if (input$graphtomake == "dimplot split") {
