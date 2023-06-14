@@ -25,7 +25,7 @@
 # library(msigdbr)
 # library(shinythemes)
 library(enrichR)
-#library(Matrix)
+library(Matrix)
 
 
 read.loom.matrices <- function(file, engine='hdf5r') {
