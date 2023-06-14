@@ -735,9 +735,13 @@ server <- function(input, output) {
     req(input$mergetype, !(is.null(ftype$read10x)))
     if (!is.null(sobj$obj)) {
     } else if (input$mergetype == "Simple Merge") {
-      print(ftype$read10x)
-        if (ftype$read10x) {sobj$obj <- renew_merged(names(), subdirs(), read10x = TRUE)}
-        else {sobj$obj <- renew_merged(raw_inputs()$name, raw_inputs()$datapath, read10x = FALSE)}
+      
+        if (ftype$read10x) {
+          req(input$testdir)
+          sobj$obj <- renew_merged(names(), subdirs(), read10x = TRUE)}
+        else {
+          req(input$rawcounts)
+          sobj$obj <- renew_merged(raw_inputs()$name, raw_inputs()$datapath, read10x = FALSE)}
     } else if (input$mergetype == "Integrate") {
       if (ftype$read10x) {sobj$obj <- renew_integrated(names(), subdirs(), read10x = TRUE)}
       else {
