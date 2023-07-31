@@ -66,7 +66,7 @@ The basic pipeline of RATS bulk analysis involves:
 This package has been tested using R version 4.2.2. This tool also requires instllation of R.utils, devtools, and BiocManager if not already installed.
 ``` r
   # Install devtools and BiocManager if not already installed
-  install.packages(c('devtools','BiocManager', 'R.utils')
+  install.packages(c('devtools','BiocManager', 'R.utils'))
   devtools::install_version("Matrix", version = "1.5.3", force = TRUE) #Make sure Matrix version is 1.5.3 or newer!
   
   # Install BulkRNAseqShiny
