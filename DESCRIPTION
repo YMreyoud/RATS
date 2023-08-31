@@ -1,11 +1,11 @@
-Package: BulkRNAseqShiny
-Title: Shiny Based Bulk RNA-Sequencing Analysis
+Package: RATS
+Title: Shiny Based Bulk and Single-cell RNA-Sequencing Analysis
 Version: 0.0.0.9000
 Authors@R: 
     person(given = "Yassin",
            family = "Mreyoud",
            role = c("aut", "cre"),
-           email = "yassin.mreyoud@wustl.edu",
+           email = "ymreyoud@uab.edu",
            comment = c(ORCID = "YOUR-ORCID-ID"))
 Description: This package generates a user-friendly and interactive enevironment for Bulk RNA-sequencing analysis.
 License: `use_mit_license()`, `use_gpl3_license()` or friends to
