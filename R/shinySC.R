@@ -1,3 +1,3 @@
 #'@export
 
-shinySC <- function() {shiny::runApp(system.file('shinySC', package = 'BulkRNAseqShiny'))}
+shinySC <- function() {shiny::runApp(system.file('shinySC', package = 'RATS'))}
