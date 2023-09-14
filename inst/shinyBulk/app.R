@@ -426,7 +426,7 @@ server <- function(input, output) {
       else if (input$graphtomake == 'MDS') {
         mds <- limma::plotMDS(raw_counts$dge, labels = raw_counts$dge$samples$group)
         toplot <- data.frame(Dim1 = mds$x, Dim2 = mds$y, Group = raw_counts$dge$samples$group)
-        ggplot2::ggplot(toplot, aes(Dim1,Dim2,color=Group, size=2)) + geom_point()+ theme(text = element_text(size = 20))
+        ggplot2::ggplot(toplot, ggplot2::aes(Dim1,Dim2,color=Group, size=2)) + ggplot2::geom_point()+ ggplot2::theme(text = element_text(size = 20))
       }
     })
     output$graph <- renderPlot({
